@@ -55,3 +55,33 @@ export const loginUserService = async (userData: any)=> {
     return {user, token}
 
 }
+
+export const updateUserPasswordService = async (userId: string, data: any)=>{
+    const {currentPassword, newPassword} = data;
+    const currentUser = await User.findById(userId).select('+password')
+
+    // Check if user exist or nit
+    if (!currentUser){
+        throw new AppError("User doesn't exist", 404);
+    }
+
+    // Compare the passwords
+    const isMatch = await bcrypt.compare(currentPassword, currentUser.password);
+    if (!isMatch){
+        throw new AppError('Incorrect Password', 401);
+    }
+
+    //  Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Reassign the values on the user
+    currentUser.password = hashedPassword;
+    currentUser.passwordChangedAt = new Date();
+
+    await currentUser.save()
+
+    // Sign the token
+    const token = signToken(userId)
+    return {user: currentUser, token}
+}

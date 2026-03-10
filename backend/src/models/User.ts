@@ -7,6 +7,7 @@ export interface IUser extends Document{
     password: string;
     createdAt: Date;
     updatedAt: Date;
+    passwordChangedAt?:Date;
 }
 
 // Mongoose Schema definition
@@ -28,6 +29,9 @@ const userSchema: Schema<IUser> = new Schema({
         required: [true, 'Please provide a password'],
         minlength: 8,
         select: false
+    },
+    passwordChangedAt: {
+        type: Date
     },
 },{
     timestamps: true, // Automatically adds createdAt and updatedAt fields

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUserService, loginUserService } from "../services/auth.service";
+import { registerUserService, loginUserService, updateUserPasswordService } from "../services/auth.service";
 import { asyncHandler } from "../utils/asyncHandler";
 
 const sendTokenResponse = (userDoc: any, token: string, statusCode: number, res: Response)=>{
@@ -35,6 +35,12 @@ export const logout = asyncHandler(async ( req: Request, res: Response)=>{
     });
     res.status(200).json({ success: true, message: 'User successfully logged out' });
 });
+
+export const updatePassword = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?._id.toString()!
+    const {user, token} = await updateUserPasswordService(userId, req.body);
+    sendTokenResponse(user, token, 200, res);
+})
 
 export const getMe = asyncHandler( async(req: Request, res: Response)=>{
     res.status(200).json({ success: true, user: req.user });

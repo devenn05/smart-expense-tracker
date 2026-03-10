@@ -7,6 +7,7 @@ import { User } from "../models/User";
 // Describes the data stored inside the token.
 interface jwtPayload{
     id: string
+    iat: number
 }
 
 export const protect = asyncHandler( async (req: Request, res: Response, next: NextFunction)=>{
@@ -33,6 +34,14 @@ export const protect = asyncHandler( async (req: Request, res: Response, next: N
         )
     }
 
+    if (currentUser.passwordChangedAt){
+        const changedTimestamp = Math.floor(currentUser.passwordChangedAt.getTime() / 1000);
+        if (decoded.iat < changedTimestamp){
+            return next(
+                new AppError("User recently changed password! Please log in again.", 401)
+            )
+        }
+    }
     // We append the whole user document to the request object!
     req.user = currentUser;
     next();
