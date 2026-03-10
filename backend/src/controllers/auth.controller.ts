@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import { registerUserService, loginUserService } from "../services/auth.service";
 import { asyncHandler } from "../utils/asyncHandler";
 
-const sendTokenResponse = (user: any, token: string, statusCode: number, res: Response)=>{
+const sendTokenResponse = (userDoc: any, token: string, statusCode: number, res: Response)=>{
+    const user = userDoc.toObject();
+    delete user.password; 
     const cookieOptions = {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         httpOnly: true,

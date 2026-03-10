@@ -35,6 +35,6 @@ const alertHistorySchema: Schema<IAlertHistory> = new Schema({
 );
 
 // To Ensure only ONE email is sent per alert type, per category, per user, per month
-alertHistorySchema.index({user: 1, category: 1, alertType: 1, monthYear: 1});
+alertHistorySchema.index({user: 1, category: 1, alertType: 1, monthYear: 1}, { unique: true });
 
 export const AlertHistory = mongoose.model<IAlertHistory>('AlertHistory', alertHistorySchema);
