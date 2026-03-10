@@ -4,7 +4,7 @@ import { ZodObject, ZodError} from 'zod';
 
 // A dynamic middleware that accepts any Zod Schema
 export const validate = (schema: ZodObject) => {
-    (req: Request, res: Response, next: NextFunction) => {
+    return (req: Request, res: Response, next: NextFunction) => {
         try {
             // Validates the incoming request against the schema provided
             schema.parse({

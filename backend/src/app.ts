@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from "helmet";
 import { errorHandler } from './middlewares/errorHandler';
+import authRoutes from './routes/auth.routes';
 
 const app: Application = express();
 
@@ -23,6 +24,8 @@ app.use(cookieParser());
 app.get('/api/v1/health', (req: Request, res: Response)=>{
     res.status(200).json({ success: true, message: 'Server is actively running.' })
 })
+
+app.use('/api/v1/auth', authRoutes);
 
 app.use(errorHandler);
 
