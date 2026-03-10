@@ -3,15 +3,15 @@ import { registerUserService, loginUserService } from "../services/auth.service"
 import { asyncHandler } from "../utils/asyncHandler";
 
 const sendTokenResponse = (userDoc: any, token: string, statusCode: number, res: Response)=>{
-    const user = userDoc.toObject();
-    delete user.password; 
+    const cookieExpireDays = parseInt(process.env.JWT_COOKIE_EXPIRES_IN || '7', 10);
     const cookieOptions = {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        expires: new Date(Date.now() + cookieExpireDays * 24 * 60 * 60 * 1000), // 7 days
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict' as const,
     }
-    user.password = undefined
+    const user = userDoc.toObject ? userDoc.toObject() : userDoc;
+    delete user.password;
 
     res.status(statusCode).cookie('jwt', token, cookieOptions).json({
         success: true, user
@@ -20,7 +20,7 @@ const sendTokenResponse = (userDoc: any, token: string, statusCode: number, res:
 
 export const register = asyncHandler(async (req: Request, res: Response)=>{
     const {user, token} = await registerUserService(req.body);
-    sendTokenResponse(user, token, 200, res);
+    sendTokenResponse(user, token, 201, res);
 });
 
 export const login = asyncHandler(async (req:Request, res: Response)=>{
