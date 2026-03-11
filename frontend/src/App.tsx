@@ -13,11 +13,14 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 function App() {
   const dispatch = useDispatch();
   useEffect(()=>{
+    // Check if user is logged in upon initial page load
     const verifyUser = async () => {
       try{
+        // If the backend accepts the cookie, save the user!
         const response = await authService.getMe();
         dispatch(setCredentials(response.user))
       } catch (error){
+        // If the backend rejects the cookie, clear the user!
         dispatch(clearCredentials());
       } finally {
         dispatch(setLoading(false))

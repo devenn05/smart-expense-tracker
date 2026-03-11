@@ -14,7 +14,7 @@ export const authService = {
         return response.data
     },
     getMe: async () =>{
-        const response = await api.post('/auth/me');
+        const response = await api.get('/auth/me');
         return response.data
     }
 }
