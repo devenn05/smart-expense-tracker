@@ -3,9 +3,9 @@ import type { PayloadAction } from "@reduxjs/toolkit"
 
 // Match the shape of the user from the backend
 interface User { 
-    id: number
+    _id: number
+    name: string
     email: string
-    password: string
 }
 
 // Create a structure to set initial state

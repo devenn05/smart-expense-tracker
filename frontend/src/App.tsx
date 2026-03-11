@@ -1,16 +1,49 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css'
+import { Login } from './pages/Login'
+import { Register } from './pages/Register'
+import { Dashboard } from './pages/Dashboard'
+import { useDispatch } from 'react-redux'
+import { authService } from './services/authService'
+import { clearCredentials, setCredentials, setLoading } from './store/slices/authSlice'
+import { AuthLayout } from './components/layout/AuthLayout';
+import { ProtectedRoute } from './components/layout/ProtectedRoute';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const dispatch = useDispatch();
+  useEffect(()=>{
+    const verifyUser = async () => {
+      try{
+        const response = await authService.getMe();
+        dispatch(setCredentials(response.user))
+      } catch (error){
+        dispatch(clearCredentials());
+      } finally {
+        dispatch(setLoading(false))
+      }
+    }
+    verifyUser()
+  }, [dispatch])  
 
   return (
     <>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AuthLayout/>}>
+            <Route path='/login' element={<Login/>}></Route>
+            <Route path='/register' element={<Register/>}></Route>
+          </Route>
+
+          <Route element={<ProtectedRoute/>}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/transactions" element={<p>Transactions page coming soon!</p>} />
+          </Route>
+
+          {/* Default catch-all redirects to Dashboard */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
     </>
   )
 }
