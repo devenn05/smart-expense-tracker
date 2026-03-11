@@ -34,6 +34,7 @@ export const protect = asyncHandler( async (req: Request, res: Response, next: N
         )
     }
 
+    // Check if the user have change there password before last jwt generation
     if (currentUser.passwordChangedAt){
         const changedTimestamp = Math.floor(currentUser.passwordChangedAt.getTime() / 1000);
         if (decoded.iat < changedTimestamp){

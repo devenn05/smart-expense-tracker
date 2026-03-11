@@ -16,7 +16,7 @@ export const registerUserService = async (userData: any) => {
     // Check if the email already exists
     const existingUser = await User.findOne({email})
     if (existingUser){
-        throw new AppError('Email is already in use', 400);
+        throw new AppError('Email is already in use, please Login.', 400);
     }
 
     //  Hash the password
