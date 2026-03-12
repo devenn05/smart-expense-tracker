@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Transaction } from "../models/Transaction";
 import { APIFeatures } from "../utils/apiFeatures";
+import { AppError } from "../utils/AppError";
 
 // Add a new transaction
 export const createTransaction = asyncHandler(async(req: Request, res: Response)=>{
@@ -30,4 +31,35 @@ export const getTransaction = asyncHandler(async(req: Request, res: Response)=>{
     const transactions = await features.query.populate('category', 'name color')
     
     res.status(200).json({ success: true, count: transactions.length, data: transactions });
+})
+
+export const updateTransaction = asyncHandler(async (req: Request, res: Response)=>{
+    let transaction = await Transaction.findById(req.params.id);
+    if (!transaction){
+        throw new AppError('Transaction not found', 404)
+    }
+    // Checks that you can only edit your own transactions
+    if (transaction.user.toString() !== req.user?._id.toString()) {
+        throw new AppError('Not authorized to update this transaction', 403);
+    }
+
+    transaction = await Transaction.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+    }).populate('category', 'name color');
+
+    res.status(200).json({ success: true, data: transaction });
+})
+
+export const deleteTransaction = asyncHandler(async(req: Request, res: Response)=>{
+    let transaction = await Transaction.findById(req.params.id);
+    if (!transaction){
+        throw new AppError('Transaction not found', 404)
+    }
+    // Checks that you can only edit your own transactions
+    if (transaction.user.toString() !== req.user?._id.toString()) {
+        throw new AppError('Not authorized to delete this transaction', 403);
+    }
+    transaction.deleteOne()
+    res.status(200).json({ success: true, message: 'Transaction deleted successfully' });
 })
