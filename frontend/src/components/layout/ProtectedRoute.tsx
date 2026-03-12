@@ -3,6 +3,7 @@ import type { RootState } from "../../store/store";
 import { authService } from "../../services/authService";
 import { clearCredentials } from "../../store/slices/authSlice";
 import { Navigate, Outlet } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export const ProtectedRoute = () => {
     const dispatch = useDispatch();
@@ -23,6 +24,8 @@ export const ProtectedRoute = () => {
     return(
         <>
         <nav>
+            <Link to="/dashboard" style={{ marginRight: '10px' }}>Dashboard</Link>
+            <Link to="/finances" style={{ marginRight: '10px' }}>Manage Finances</Link>
         <p>Logged in as: {user?.name}</p>
         <button onClick={handleLogout}>Logout</button>
       </nav>

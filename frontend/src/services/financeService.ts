@@ -10,7 +10,7 @@ export const financeServce = {
         return response.data;
     },
     deleteCategories: async(id: string) =>{
-        const response = await api.post(`/categories/:${id}`);
+        const response = await api.delete(`/categories/${id}`);
         return response.data
     },
     

@@ -9,6 +9,7 @@ import { authService } from './services/authService'
 import { clearCredentials, setCredentials, setLoading } from './store/slices/authSlice'
 import { AuthLayout } from './components/layout/AuthLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
+import { CategoriesBudgets } from './pages/CategoriesBudgets';
 
 function App() {
   const dispatch = useDispatch();
@@ -40,8 +41,11 @@ function App() {
 
           <Route element={<ProtectedRoute/>}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/finances" element={<CategoriesBudgets />} />
             <Route path="/transactions" element={<p>Transactions page coming soon!</p>} />
           </Route>
+
+          
 
           {/* Default catch-all redirects to Dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

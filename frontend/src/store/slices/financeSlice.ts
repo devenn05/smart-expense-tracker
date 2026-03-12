@@ -1,7 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
-import type { PayloadAction } from "@reduxjs/toolkit"
 import { financeServce } from "../../services/financeService";
-import { da } from "zod/locales";
 
 export interface Category {
     _id: string;
@@ -26,13 +24,14 @@ interface FinanceState{
 const initialState: FinanceState = {
     categories: [],
     budgets: [],
-    isLoading: true,
+    isLoading: false,
     error: null
 }
 
 export const fetchCategories = createAsyncThunk('finance/fetchCategories', async(_, thunkAPI)=>{
     try{
-        return await financeServce.getCategories();
+        const res =  await financeServce.getCategories();
+        return res.data;
     }catch(error: any){
         return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to fetch Categories');
     }
@@ -40,7 +39,8 @@ export const fetchCategories = createAsyncThunk('finance/fetchCategories', async
 
 export const addCategory = createAsyncThunk('finance/addCategory', async(data: {name: string, color?: string}, thunkAPI)=>{
     try{
-        return await financeServce.createCategories(data);
+        const res = await financeServce.createCategories(data);
+        return res.data;
     }catch(error: any){
         return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to add Category');
     }
@@ -48,7 +48,8 @@ export const addCategory = createAsyncThunk('finance/addCategory', async(data: {
 
 export const fetchBudget = createAsyncThunk('finance/fetchBudget', async(_, thunkAPI)=>{
     try{
-        return financeServce.getBudgets();
+        const res = await financeServce.getBudgets();
+        return res.data;
     }catch(error: any){
         return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to fetch Budgets');
     }
@@ -56,7 +57,8 @@ export const fetchBudget = createAsyncThunk('finance/fetchBudget', async(_, thun
 
 export const setBudget = createAsyncThunk('finance/setBudget', async(data: {category: string, amount: number}, thunkAPI)=>{
     try{
-        return await financeServce.upsertBudget(data);
+        const res = await financeServce.upsertBudget(data);
+        return res.data;
     }catch(error: any){
         return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to set Budget');
     }
@@ -107,7 +109,6 @@ const financeSlice = createSlice({
                 state.budgets.push({ ...action.payload, category: catObj || action.payload.category });
             }
         })
-
     }
 })
 
