@@ -22,7 +22,7 @@ export const upsertBudget = asyncHandler(async(req: Request, res: Response)=>{
 
 export const getBudget = asyncHandler(async(req: Request, res: Response)=>{
     // // Populate fills in the actual category details instead of just returning the ID
-    const budget = Budget.find({user: req.user?._id}).populate('category', 'name color isPredefined')
+    const budget = await Budget.find({user: req.user?._id}).populate('category', 'name color isPredefined')
 
     res.status(200).json({ success: true, data: budget });
 })
