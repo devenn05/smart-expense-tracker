@@ -60,6 +60,6 @@ export const deleteTransaction = asyncHandler(async(req: Request, res: Response)
     if (transaction.user.toString() !== req.user?._id.toString()) {
         throw new AppError('Not authorized to delete this transaction', 403);
     }
-    transaction.deleteOne()
+    await transaction.deleteOne()
     res.status(200).json({ success: true, message: 'Transaction deleted successfully' });
 })
