@@ -103,10 +103,8 @@ const financeSlice = createSlice({
             if (existingIndex >= 0 ){
                 state.budgets[existingIndex] = action.payload
             } else {
-                // Because the payload might just return the category ID string instead of populated object, 
-                // a simple way to keep the UI perfectly synced is to force a re-fetch of budgets or map the category:
-                const catObj = state.categories.find(c => c._id === (action.payload.category as any));
-                state.budgets.push({ ...action.payload, category: catObj || action.payload.category });
+                // Appends mapped values directly to objects!
+                state.budgets.push(action.payload);
             }
         })
     }

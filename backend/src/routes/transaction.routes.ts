@@ -8,7 +8,7 @@ const router = Router();
 
 router.use(protect)
 
-router.route('/').get(getTransaction).post(createTransaction)
+router.route('/').get(getTransaction).post(validate(transactionSchema), createTransaction)
 router.route('/:id').put(validate(transactionSchema), updateTransaction).delete(deleteTransaction)
 
 export default router;

@@ -31,9 +31,18 @@ export const budgetSchema = z.object({
   amount: z.coerce.number().positive('Budget must be greater than 0')
 });
 
+// Transaction form
+export const transactionFormSchema = z.object({
+  type: z.enum(['income', 'expense']),
+  amount: z.coerce.number().positive('Amount must be positive'),
+  category: z.string().min(1, 'Please select a category'),
+  date: z.string().min(1, 'Please select a date'),
+  description: z.string().max(100, 'Description is too long').optional(),
+});
 
 // These types extract the TypeScript interface directly from the Zod schemas!
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
 export type CategoryForm = z.infer<typeof categorySchema>;
 export type BudgetForm = z.infer<typeof budgetSchema>;
+export type TransactionForm = z.input<typeof transactionFormSchema>;

@@ -22,6 +22,6 @@ export const transactionSchema = z.object({
         type: z.enum(['income', 'expense']).refine(val => !!val, {message: 'Transaction type is required'}),
         category: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), { message: "Invalid Category ID" }),
         description: z.string().max(100, 'Description too long').optional().default(''),
-        date: z.string().datetime().optional(), 
+        date: z.coerce.date().optional() 
     })
 })

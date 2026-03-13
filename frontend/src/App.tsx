@@ -10,6 +10,7 @@ import { clearCredentials, setCredentials, setLoading } from './store/slices/aut
 import { AuthLayout } from './components/layout/AuthLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { CategoriesBudgets } from './pages/CategoriesBudgets';
+import { Transactions } from './pages/Transactions';
 
 function App() {
   const dispatch = useDispatch();
@@ -42,7 +43,7 @@ function App() {
           <Route element={<ProtectedRoute/>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/finances" element={<CategoriesBudgets />} />
-            <Route path="/transactions" element={<p>Transactions page coming soon!</p>} />
+            <Route path="/transactions" element={<Transactions />} />
           </Route>
 
           

@@ -9,7 +9,7 @@ export const upsertBudget = asyncHandler(async(req: Request, res: Response)=>{
     // It checks for a matching user and category.
     // If it finds it -> updates the amount.
     // If it doesn't -> creates a brand new document!
-    const budget = await Budget.findOneAndUpdate(
+    let budget = await Budget.findOneAndUpdate(
         {user: req.user?._id, category: category},
         {amount: amount},{
             new: true,
@@ -17,6 +17,7 @@ export const upsertBudget = asyncHandler(async(req: Request, res: Response)=>{
             runValidators: true
         }
     )
+    budget = await budget.populate('category', 'name color isPredefined')
     res.status(200).json({ success: true, data: budget });
 })
 

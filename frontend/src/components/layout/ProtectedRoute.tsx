@@ -26,6 +26,7 @@ export const ProtectedRoute = () => {
         <nav>
             <Link to="/dashboard" style={{ marginRight: '10px' }}>Dashboard</Link>
             <Link to="/finances" style={{ marginRight: '10px' }}>Manage Finances</Link>
+            <Link to="/transactions" style={{ marginRight: '10px' }}>Transactions</Link>
         <p>Logged in as: {user?.name}</p>
         <button onClick={handleLogout}>Logout</button>
       </nav>

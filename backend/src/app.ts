@@ -31,7 +31,7 @@ app.get('/api/v1/health', (req: Request, res: Response)=>{
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/categories', categoryRoutes)
 app.use('/api/v1/budget', budgetRoutes)
-app.use('/api/v1/transaction', transactionRoutes)
+app.use('/api/v1/transactions', transactionRoutes)
 
 
 app.use(errorHandler);
