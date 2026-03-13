@@ -8,7 +8,7 @@ export const generateDashboardAnalytics = async (userId: string) => {
   // Setting the last day of the month at 23:59:59.999
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-  // 2. The Mighty Aggregation Pipeline
+  // 2. The Aggregation Pipeline
   // $facet allows us to run multiple different mathematical groups at the EXACT same time!
   const [aggregatedData] = await Transaction.aggregate([
     {
@@ -29,7 +29,7 @@ export const generateDashboardAnalytics = async (userId: string) => {
             },
           },
         ],
-        // Pipeline B: Calculate Category-wise Expense breakdown for Pie Charts!
+        // Pipeline B: Calculate Category-wise Expense breakdown
         categoryWise: [
           { $match: { type: 'expense' } }, // Only look at expenses
           {
@@ -38,7 +38,7 @@ export const generateDashboardAnalytics = async (userId: string) => {
               totalSpent: { $sum: '$amount' },
             },
           },
-          // $lookup reaches into the 'categories' collection to grab the Name and Color for the UI!
+          // $lookup reaches into the 'categories' collection to grab the Name and Color for the UI
           {
             $lookup: {
               from: 'categories',
@@ -63,6 +63,7 @@ export const generateDashboardAnalytics = async (userId: string) => {
   });
 
   const categoryBreakdown = aggregatedData.categoryWise.map((c: any) => ({
+    categoryId: c._id,
     category: c.categoryDetails.name,
     color: c.categoryDetails.color,
     totalSpent: c.totalSpent,
@@ -78,7 +79,7 @@ export const generateDashboardAnalytics = async (userId: string) => {
     predictedMonthlyExpense = (totalExpense / daysPassed) * totalDays;
   }
 
-  // 5. Send back the beautifully calculated package to React
+  // 5. Send back the calculated package to React
   return {
     currentMonth: {
       start: startOfMonth,
