@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Category } from "../models/Category";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../utils/AppError";
+import { Transaction } from "../models/Transaction";
 
 // Get all applicable categories (Predefined + User's Custom)
 export const getCategories = asyncHandler(async (req: Request, res: Response)=>{
@@ -42,6 +43,12 @@ export const deleteCategory = asyncHandler(async(req: Request, res: Response)=>{
     // Ensure users can only delete THEIR OWN custom categories
     if (category.user?.toString() !== req.user?._id.toString()){
         throw new AppError('Not authorized to delete this category', 403);
+    }
+
+    // Prevent deletion if transactions are currently linked to this category
+    const linkedTransactionsCount = await Transaction.countDocuments({ category: category._id });
+    if (linkedTransactionsCount > 0) {
+        throw new AppError('Cannot delete category because it is actively linked to existing transactions. Please re-assign or delete those transactions first.', 400);
     }
 
     await category.deleteOne();

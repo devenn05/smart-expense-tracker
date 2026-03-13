@@ -54,10 +54,14 @@ export class APIFeatures {
   }
   sort() {
     if (this.queryString.sort) {
-      const sortBy = this.queryString.sort.split(",").join(" ");
+      let sortBy = '';
+      if (typeof this.queryString.sort === 'string') {
+        sortBy = this.queryString.sort.split(",").join(" ");
+      } else if (Array.isArray(this.queryString.sort)) {
+        sortBy = this.queryString.sort.join(" ");
+      }
       this.query = this.query.sort(sortBy);
     } else {
-      // default sorting
       this.query = this.query.sort("-date");
     }
 

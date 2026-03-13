@@ -47,7 +47,7 @@ export const generateDashboardAnalytics = async (userId: string) => {
               as: 'categoryDetails',
             },
           },
-          { $unwind: '$categoryDetails' }, // Flattens the resulting array into an object
+          { $unwind: { path: "$categoryDetails", preserveNullAndEmptyArrays: true } }, // Flattens the resulting array into an object
         ],
       },
     },
@@ -64,8 +64,8 @@ export const generateDashboardAnalytics = async (userId: string) => {
 
   const categoryBreakdown = aggregatedData.categoryWise.map((c: any) => ({
     categoryId: c._id,
-    category: c.categoryDetails.name,
-    color: c.categoryDetails.color,
+    category: c.categoryDetails?.name || 'Uncategorized / Deleted',
+    color: c.categoryDetails?.color || '#9ca3af',
     totalSpent: c.totalSpent,
   }));
 
