@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import categoryRoutes from './routes/category.routes'
 import budgetRoutes from './routes/budget.routes'
 import transactionRoutes from './routes/transaction.routes';
+import analyticsRoutes from './routes/analytics.routes';
 
 const app: Application = express();
 
@@ -28,10 +29,11 @@ app.get('/api/v1/health', (req: Request, res: Response)=>{
     res.status(200).json({ success: true, message: 'Server is actively running.' })
 })
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/categories', categoryRoutes)
-app.use('/api/v1/budget', budgetRoutes)
-app.use('/api/v1/transactions', transactionRoutes)
+app.use('/api/v1/auth', authRoutes);;
+app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/budget', budgetRoutes);
+app.use('/api/v1/transactions', transactionRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
 
 
 app.use(errorHandler);
