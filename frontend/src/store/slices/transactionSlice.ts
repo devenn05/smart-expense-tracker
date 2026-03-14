@@ -4,6 +4,7 @@ import { transactionService } from "../../services/transactionService";
 export interface CategoryPopulated {
     _id: string;
     name: string;
+    type: 'income' | 'expense';
     color: string;
 }
 
@@ -47,6 +48,14 @@ export const addTransaction = createAsyncThunk('transactions/addTransaction', as
     }
 })
 
+export const editTransaction = createAsyncThunk('transaction/editTransaction', async(args: {id: string, data: any}, thunkAPI)=>{
+    try { 
+        const res = await transactionService.updateTransaction(args.id, args.data); return res.data; 
+    }catch (error: any) { 
+        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to edit Transaction.'); 
+    }
+});
+
 export const deleteTransaction = createAsyncThunk('transaction/deleteTransaction', async(id: string, thunkAPI)=>{
     try{
         await transactionService.deleteTransaction(id);
@@ -73,6 +82,15 @@ const transactionSlice = createSlice({
             state.transactions.unshift(action.payload);
             state.isLoading = false;
         })
+
+        // Edit Transaction
+        builder.addCase(editTransaction.fulfilled, (state, action) => {
+            const index = state.transactions.findIndex(t => t._id === action.payload._id);
+            if (index >= 0) {
+                state.transactions[index] = action.payload;
+            }
+        });
+
         // Cleanly remove from memory via the ID
         builder.addCase(deleteTransaction.fulfilled, (state, action)=>{
             state.transactions = state.transactions.filter(t=> t._id !== action.payload);

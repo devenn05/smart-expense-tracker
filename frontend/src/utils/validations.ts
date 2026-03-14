@@ -22,7 +22,13 @@ export const registerSchema = z.object({
 // Category Validation
 export const categorySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
+  type: z.enum(['income', 'expense']),
   color: z.string().regex(/^#([0-9A-F]{3}){1,2}$/i, 'Invalid Hex Color').optional().or(z.literal('')),
+});
+
+export const updateCategorySchema = z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    color: z.string().regex(/^#([0-9A-F]{3}){1,2}$/i, 'Invalid Hex Color').optional().or(z.literal('')),
 });
 
 // Budget Validation
@@ -44,5 +50,6 @@ export const transactionFormSchema = z.object({
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
 export type CategoryForm = z.infer<typeof categorySchema>;
+export type UpdateCategoryForm = z.infer<typeof updateCategorySchema>;
 export type BudgetForm = z.infer<typeof budgetSchema>;
 export type TransactionForm = z.input<typeof transactionFormSchema>;

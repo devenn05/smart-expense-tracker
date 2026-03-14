@@ -5,8 +5,12 @@ export const financeServce = {
         const response = await api.get('/categories');
         return response.data;
     },
-    createCategories: async(categoryData: { name: string; color?: string })=>{
+    createCategories: async(categoryData: { name: string; type: 'income' | 'expense'; color?: string })=>{
         const response = await api.post('/categories', categoryData);
+        return response.data;
+    },
+    updateCategory: async(id: string, categoryData: { name: string; color?: string })=>{
+        const response = await api.put(`/categories/${id}`, categoryData);
         return response.data;
     },
     deleteCategories: async(id: string) =>{

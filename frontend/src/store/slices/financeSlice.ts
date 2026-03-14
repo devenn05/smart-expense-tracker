@@ -4,6 +4,7 @@ import { financeServce } from "../../services/financeService";
 export interface Category {
     _id: string;
     name: string;
+    type: 'income' | 'expense';
     color: string;
     isPredefined: boolean
 }
@@ -37,12 +38,27 @@ export const fetchCategories = createAsyncThunk('finance/fetchCategories', async
     }
 });
 
-export const addCategory = createAsyncThunk('finance/addCategory', async(data: {name: string, color?: string}, thunkAPI)=>{
-    try{
-        const res = await financeServce.createCategories(data);
-        return res.data;
-    }catch(error: any){
-        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to add Category');
+export const addCategory = createAsyncThunk('finance/addCategory', async(data: {name: string, type: 'income' | 'expense', color?: string}, thunkAPI)=>{
+    try { 
+        const res = await financeServce.createCategories(data); return res.data; 
+    }catch(error: any) { 
+        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to add Category'); 
+    }
+});
+
+export const updateCategory = createAsyncThunk('finance/updateCategory', async(args: { id: string, data: { name: string, color?: string } }, thunkAPI)=>{
+    try { 
+        const res = await financeServce.updateCategory(args.id, args.data); return res.data; 
+    }catch(error: any) { 
+        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to update Category'); 
+    }
+});
+
+export const deleteCategory = createAsyncThunk('finance/deleteCategory', async(id: string, thunkAPI)=>{
+    try { 
+        await financeServce.deleteCategories(id); return id; 
+    }catch(error: any) { 
+        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to delete Category'); 
     }
 });
 
@@ -88,6 +104,19 @@ const financeSlice = createSlice({
         builder.addCase(addCategory.fulfilled, (state, action)=>{
             state.categories.push(action.payload);
         })
+
+        // // Handling update Category
+        builder.addCase(updateCategory.fulfilled, (state, action)=>{
+            const index = state.categories.findIndex(c => c._id === action.payload._id);
+            if(index >= 0) state.categories[index] = action.payload;
+        });
+
+        builder.addCase(deleteCategory.fulfilled, (state, action)=>{
+            state.categories = state.categories.filter(c => c._id !== action.payload);
+            // we immediately delete the budget if a user forces deletion of a category!
+            state.budgets = state.budgets.filter(b => b.category?._id !== action.payload);
+        });
+
 
         // Handling Fetch Budgets
         builder.addCase(fetchBudget.pending, (state)=> {state.isLoading = true;});

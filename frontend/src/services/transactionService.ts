@@ -9,6 +9,10 @@ export const transactionService = {
         const res = await api.post('/transactions', data);
         return res.data;
     },
+    updateTransaction: async (id: string, data: any) =>{
+        const res = await api.put(`/transactions/${id}`, data);
+        return res.data;
+    },
     deleteTransaction: async (id: string) =>{
         const res = await api.delete(`/transactions/${id}`)
         return res.data;

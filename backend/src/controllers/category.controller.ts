@@ -18,15 +18,44 @@ export const getCategories = asyncHandler(async (req: Request, res: Response)=>{
 
 // Create a custom category
 export const createCategory = asyncHandler(async (req: Request, res: Response)=>{
-    const {name, color} = req.body
+    const {name, type, color} = req.body = req.body
     const category = await Category.create({
         name,
-        color: color || '#3B82F6',
+        type,
+        color: color || (type === 'income' ? '#10b981' : '#f43f5e'),
         isPredefined: false,
         user: req.user?._id,
     })
     res.status(201).json({ success: true, data: category });
 })
+
+//Update a custom category
+export const updateCategory = asyncHandler(async (req: Request, res: Response)=>{
+    const category = await Category.findById(req.params.id);
+    if (!category) {
+        throw new AppError("Category not found", 404);
+    }
+
+    // Cannot edit predefined categories
+    if (category.isPredefined){
+        throw new AppError("System predefined categories cannot be modified.", 403);
+    }
+
+    // Cannot edit someone else's category
+    if (category.user?.toString() !== req.user?._id.toString()){
+        throw new AppError('Not authorized to edit this category.', 403);
+    }
+
+    const { name, color } = req.body;
+    
+    // We update safely without altering the 'type' to prevent historical corruption
+    if (name) category.name = name;
+    if (color) category.color = color;
+    
+    await category.save();
+
+    res.status(200).json({ success: true, data: category });
+});
 
 // Delete a category
 export const deleteCategory = asyncHandler(async(req: Request, res: Response)=>{

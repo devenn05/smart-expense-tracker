@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { type AppDispatch, type RootState } from '../store/store';
-import { fetchTransactions, deleteTransaction } from '../store/slices/transactionSlice';
+import { fetchTransactions, deleteTransaction, type Transaction } from '../store/slices/transactionSlice'; // Added Transaction type
 import { fetchCategories } from '../store/slices/financeSlice';
 import { Modal } from '../components/common/Modal';
 import { AddTransactionModal } from '../components/finance/AddTransactionModal';
-import { Plus, Filter, Trash2, ChevronLeft, ChevronRight, ReceiptText, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Plus, Filter, Trash2, ChevronLeft, ChevronRight, ReceiptText, ArrowUpRight, ArrowDownRight, PenLine } from 'lucide-react'; // Added PenLine
 
 export const Transactions = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -16,6 +16,9 @@ export const Transactions = () => {
   const [limit] = useState(10); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   
+  // 1. New State for Editing
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+
   const [filterType, setFilterType] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
 
@@ -50,8 +53,9 @@ export const Transactions = () => {
                 <p className="text-sm text-slate-500 mt-1">Review and manage your daily ledger.</p>
             </div>
             <div className="mt-4 sm:mt-0">
+                {/* 2. Reset editing state when clicking "New Transaction" */}
                 <button 
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => { setEditingTransaction(null); setIsModalOpen(true); }}
                     className="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 bg-brand-600 text-white rounded-lg shadow-sm font-semibold hover:bg-brand-700 focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all text-sm"
                 >
                     <Plus className="w-4 h-4 mr-2" />
@@ -60,7 +64,7 @@ export const Transactions = () => {
             </div>
         </div>
 
-        {/* Filter Bar */}
+        {/* Filter Bar (unchanged) */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 items-center sm:items-end">
             <div className="w-full sm:w-64">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Filter by Type</label>
@@ -91,7 +95,7 @@ export const Transactions = () => {
             </div>
         </div>
 
-        {/* Data Table Container */}
+        {/* Data Table */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="overflow-x-auto">
                 {isLoading ? (
@@ -158,14 +162,24 @@ export const Transactions = () => {
                                             </span>
                                         </td>
 
+                                        {/* 3. Replaced Actions <td> with Edit and Delete buttons */}
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                            <button 
-                                                onClick={() => handleDelete(t._id)}
-                                                className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition-colors inline-flex justify-center items-center opacity-0 group-hover:opacity-100 focus:opacity-100 focus:ring-2 focus:ring-rose-500 outline-none"
-                                                title="Delete Transaction"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            <div className="inline-flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button 
+                                                    onClick={() => { setEditingTransaction(t); setIsModalOpen(true); }}
+                                                    className="text-slate-400 hover:text-brand-600 hover:bg-brand-50 p-1.5 rounded-lg outline-none transition-colors" 
+                                                    title="Edit Transaction"
+                                                >
+                                                    <PenLine className="w-4 h-4" />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDelete(t._id)}
+                                                    className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg outline-none transition-colors" 
+                                                    title="Delete Transaction"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -174,8 +188,8 @@ export const Transactions = () => {
                     </table>
                 )}
             </div>
-
-            {/* Pagination Footers */}
+            
+            {/* Pagination*/}
             {!isLoading && transactions.length > 0 && (
                 <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between sm:justify-end gap-4">
                     <span className="text-sm text-slate-500 hidden sm:inline-block">Page {page}</span>
@@ -201,8 +215,16 @@ export const Transactions = () => {
             )}
         </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Transaction">
-        <AddTransactionModal onClose={() => setIsModalOpen(false)} />
+      {/* 4. Updated Modal Logic */}
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        title={editingTransaction ? "Edit Transaction" : "Add Transaction"}
+      >
+        <AddTransactionModal 
+            onClose={() => setIsModalOpen(false)} 
+            initialData={editingTransaction} 
+        />
       </Modal>
     </div>
   );

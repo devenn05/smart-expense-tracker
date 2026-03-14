@@ -21,6 +21,10 @@ export const upsertBudget = asyncHandler(async(req: Request, res: Response)=>{
         throw new AppError("Invalid Category assignment. Target does not exist or access is forbidden.", 403);
     }
 
+    if (validCategory.type === 'income') {
+        throw new AppError("Budgets can only be set for Expense categories. Setting a limit on Income is invalid.", 400);
+    }
+
     // It checks for a matching user and category.
     // If it finds it -> updates the amount.
     // If it doesn't -> creates a brand new document!
@@ -32,13 +36,13 @@ export const upsertBudget = asyncHandler(async(req: Request, res: Response)=>{
             runValidators: true
         }
     )
-    budget = await budget.populate('category', 'name color isPredefined')
+    budget = await budget.populate('category', 'name color isPredefined type')
     res.status(200).json({ success: true, data: budget });
 })
 
 export const getBudget = asyncHandler(async(req: Request, res: Response)=>{
     // // Populate fills in the actual category details instead of just returning the ID
-    const budget = await Budget.find({user: req.user?._id}).populate('category', 'name color isPredefined')
+    const budget = await Budget.find({user: req.user?._id}).populate('category', 'name color isPredefined type')
 
     res.status(200).json({ success: true, data: budget });
 })
