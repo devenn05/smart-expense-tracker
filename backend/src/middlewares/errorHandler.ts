@@ -21,6 +21,14 @@ export const errorHandler = (
         err = new AppError(`Invalid ${err.path}: ${err.value}.`, 400);
     }
 
+    // Catch JWT Validation & Expiration Errors and convert them to 401s
+    if (err.name === 'JsonWebTokenError') {
+        err = new AppError('Invalid token. Please log in again.', 401);
+    }
+    if (err.name === 'TokenExpiredError') {
+        err = new AppError('Your token has expired. Please log in again.', 401);
+    }
+
     // Send the API Response
     res.status(err.statusCode).json({
         success: false,

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, logout, getMe, updatePassword } from "../controllers/auth.controller";
+import { register, login, logout, getMe, updatePassword, refreshAccessToken } from "../controllers/auth.controller";
 import { protect } from "../middlewares/authMiddleware";
 import { validate } from "../middlewares/validateRequest";
 import { registerSchema, loginSchema, updatePasswordSchema } from "../schemas/auth.schema";
@@ -18,6 +18,7 @@ router.post('/register', validate(registerSchema), register);
 router.post('/login', loginLimiter, validate(loginSchema), login);
 router.post('/logout', logout);
 router.patch('/update-password', protect, validate(updatePasswordSchema), updatePassword);
+router.post('/refresh', refreshAccessToken);
 
 router.get('/me', protect, getMe);
 

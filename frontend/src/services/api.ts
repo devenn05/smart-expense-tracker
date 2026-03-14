@@ -10,16 +10,69 @@ const api = axios.create({
     }
 })
 
+// Variable to prevent infinite refresh loops
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
+
 api.interceptors.response.use(
-    (response)=>{
+    (response) => {
         return response;
     },
-    (error)=>{
-        if (error.response && error.response.status === 401){
-            store.dispatch(clearCredentials());
+    async (error) => {
+        const originalRequest = error.config;
+        
+        // Check if the error is 401, not a retry request, and not the refresh token endpoint itself
+        if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh') {
+            
+            if (isRefreshing) {
+                // If we are already refreshing, queue this request
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                }).then(() => {
+                    return api(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                // Call the refresh endpoint
+                await api.post('/auth/refresh');
+
+                // The browser has now automatically received the new 'jwt' cookie
+                processQueue(null);
+                
+                // Retry the original request
+                return api(originalRequest);
+
+            } catch (refreshError: any) {
+                // If refresh fails, log everyone out
+                processQueue(refreshError);
+                store.dispatch(clearCredentials());
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
+            }
         }
+        
+        // For any other errors, just pass them on
         return Promise.reject(error);
     }
-)
+);
 
 export default api;
