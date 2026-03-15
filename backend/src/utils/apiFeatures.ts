@@ -15,6 +15,7 @@ export class APIFeatures {
       'fields',
       'startDate',
       'endDate',
+      'search'
     ];
     excludedFields.forEach((el) => delete queryObj[el]);
 

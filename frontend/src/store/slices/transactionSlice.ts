@@ -19,12 +19,16 @@ export interface Transaction {
 
 interface TransactionState {
     transactions: Transaction[];
+    totalElements: number;
+    totalPages: number;
     isLoading: boolean;
     error: string | null;
 }
 
 const initialState: TransactionState = {
     transactions: [],
+    totalElements: 0,
+    totalPages: 1,
     isLoading: true,
     error: null
 }
@@ -33,7 +37,7 @@ const initialState: TransactionState = {
 export const fetchTransactions = createAsyncThunk('transactions/fetchAll', async(filters: any = {}, thunkAPI)=>{
     try{
         const res = await transactionService.getTransaction(filters);
-        return res.data;
+        return res;
     } catch(error: any){
         return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to fetch Transactions.');
     }
@@ -73,7 +77,9 @@ const transactionSlice = createSlice({
         // Handling Fetch Transactions
         builder.addCase(fetchTransactions.pending, (state)=> {state.isLoading =  true})
         builder.addCase(fetchTransactions.fulfilled, (state, action)=>{
-            state.transactions = action.payload;
+            state.transactions = action.payload.data || [];
+            state.totalElements = action.payload.totalElements || 0;
+            state.totalPages = action.payload.totalPages || 1;
             state.isLoading = false;
         })
         // Handling add Transaction

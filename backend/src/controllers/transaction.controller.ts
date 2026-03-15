@@ -29,14 +29,31 @@ export const createTransaction = asyncHandler(async(req: Request, res: Response)
 
 
 export const getTransaction = asyncHandler(async(req: Request, res: Response)=>{
+    let query = Transaction.find({user: req.user?._id});
+
+    // Handle Optional Fuzzy "Description" Searching Before Filters Execute
+    if (req.query.search) {
+        query = query.find({ description: { $regex: req.query.search as string, $options: 'i' } });
+    }
+
+    // Capture global lengths BEFORE pagination skips happen locally. 
+    // Uses clone() since executing count limits our instance's operational path moving forward.
+    const totalElementsQuery = query.clone();
+
+    // Map through pagination logics cleanly natively built prior.
     const features = new APIFeatures(
-        Transaction.find({user: req.user?._id}),
+        query,
         req.query
     ).filter().dateFilter().sort().paginate();
 
     const transactions = await features.query.populate('category', 'name color type')
     
-    res.status(200).json({ success: true, count: transactions.length, data: transactions });
+    // Calculate Paginations Mathematics for the Front-End Table!
+    const totalElements = await totalElementsQuery.countDocuments();
+    const limit = Number(req.query.limit) || 10;
+    const totalPages = Math.ceil(totalElements / limit) || 1;
+    
+    res.status(200).json({ success: true, count: transactions.length, totalElements, totalPages, data: transactions });
 })
 
 export const updateTransaction = asyncHandler(async (req: Request, res: Response)=>{
