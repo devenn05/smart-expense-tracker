@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { register, login, logout, getMe, updatePassword, refreshAccessToken } from "../controllers/auth.controller";
+import { register, login, logout, getMe, updatePassword, refreshAccessToken, initialRegister, verifyOtp } from "../controllers/auth.controller";
 import { protect } from "../middlewares/authMiddleware";
 import { validate } from "../middlewares/validateRequest";
-import { registerSchema, loginSchema, updatePasswordSchema } from "../schemas/auth.schema";
+import { registerSchema, loginSchema, updatePasswordSchema, verifyOtpSchema } from "../schemas/auth.schema";
 import rateLimit from "express-rate-limit";
 
 const router = Router();
@@ -19,6 +19,8 @@ router.post('/login', loginLimiter, validate(loginSchema), login);
 router.post('/logout', logout);
 router.patch('/update-password', protect, validate(updatePasswordSchema), updatePassword);
 router.post('/refresh', refreshAccessToken);
+router.post('/initialRegister', validate(registerSchema), initialRegister);
+router.post('/verify-otp', validate(verifyOtpSchema), verifyOtp);
 
 router.get('/me', protect, getMe);
 

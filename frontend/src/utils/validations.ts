@@ -17,6 +17,13 @@ export const registerSchema = z.object({
     .regex(/[A-Z]/, 'Must contain uppercase')
     .regex(/[a-z]/, 'Must contain lowercase')
     .regex(/[0-9]/, 'Must contain number'),
+
+    phoneNumber: z.string().regex(/^\+[1-9]\d{1,14}$/, "Must include country code (e.g., +1234567890)").optional().or(z.literal(''))
+});
+
+export const verifyOtpSchema = z.object({
+    emailOtp: z.string().length(6, 'Must be exactly 6 digits'),
+    whatsappOtp: z.string().length(6, 'Must be exactly 6 digits').optional().or(z.literal(''))
 });
 
 // Category Validation
@@ -49,6 +56,7 @@ export const transactionFormSchema = z.object({
 // These types extract the TypeScript interface directly from the Zod schemas!
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
+export type VerifyOtpForm = z.infer<typeof verifyOtpSchema>; 
 export type CategoryForm = z.infer<typeof categorySchema>;
 export type UpdateCategoryForm = z.infer<typeof updateCategorySchema>;
 export type BudgetForm = z.infer<typeof budgetSchema>;

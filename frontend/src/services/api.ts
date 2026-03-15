@@ -34,7 +34,12 @@ api.interceptors.response.use(
         const originalRequest = error.config;
         
         // Check if the error is 401, not a retry request, and not the refresh token endpoint itself
-        if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh') {
+        if (
+            error.response?.status === 401 && 
+            !originalRequest._retry && 
+            originalRequest.url !== '/auth/refresh' &&
+            originalRequest.url !== '/auth/login'
+        ) {
             
             if (isRefreshing) {
                 // If we are already refreshing, queue this request

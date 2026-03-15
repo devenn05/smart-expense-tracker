@@ -5,6 +5,11 @@ export interface IUser extends Document{
     name: string;
     email: string;
     password: string;
+    phoneNumber?: string; 
+    alertPreferences: {
+        email: boolean;
+        whatsapp: boolean;
+    };
     createdAt: Date;
     updatedAt: Date;
     passwordChangedAt?:Date;
@@ -29,6 +34,15 @@ const userSchema: Schema<IUser> = new Schema({
         required: [true, 'Please provide a password'],
         minlength: 8,
         select: false
+    },
+    phoneNumber: { 
+        type: String, 
+        trim: true, 
+        default: null 
+    }, 
+    alertPreferences: {
+        email: { type: Boolean, default: true },
+        whatsapp: { type: Boolean, default: false }
     },
     passwordChangedAt: {
         type: Date

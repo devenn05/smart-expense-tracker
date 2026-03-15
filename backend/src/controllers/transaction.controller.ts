@@ -4,6 +4,7 @@ import { Transaction } from "../models/Transaction";
 import { APIFeatures } from "../utils/apiFeatures";
 import { AppError } from "../utils/AppError";
 import { Category } from "../models/Category";
+import { checkAndTriggerBudgetAlert } from "../services/alert.service";
 
 // Add a new transaction
 export const createTransaction = asyncHandler(async(req: Request, res: Response)=>{
@@ -22,6 +23,11 @@ export const createTransaction = asyncHandler(async(req: Request, res: Response)
         user: req.user?._id, amount, type, category, description,
         date: date || new Date()
     });
+
+    // TRIGGER BUDGET CHECK in the background asynchronously!
+    if (type === 'expense') {
+        checkAndTriggerBudgetAlert(req.user?._id.toString()!, category);
+    }
 
     const populatedTransaction = await transaction.populate('category', 'name color type');
     res.status(201).json({ success: true, data: populatedTransaction });
@@ -74,11 +80,17 @@ export const updateTransaction = asyncHandler(async (req: Request, res: Response
             throw new AppError(`Mismatch error: Ensure category and transaction type match correctly.`, 400);
         }
     }
+    
 
     transaction = await Transaction.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
         runValidators: true,
     }).populate('category', 'name color type');
+
+    // TRIGGER CHECK HERE TOO (incase editing an amount broke the limit!)
+    if (newType === 'expense') {
+        checkAndTriggerBudgetAlert(req.user?._id.toString()!, newCategory.toString());
+    }
 
     res.status(200).json({ success: true, data: transaction });
 });
