@@ -12,19 +12,19 @@ export const whatsappClient = new Client({
 
 export let isWhatsAppReady = false;
 
-// When the client wants you to log in, it will print a QR code to your backend terminal
-whatsappClient.on('qr', (qr) => {
-    console.log('\n📱 Scan this QR Code with your WhatsApp app to link your bot:\n');
-    qrcode.generate(qr, { small: true });
-});
+// // When the client wants you to log in, it will print a QR code to your backend terminal
+// whatsappClient.on('qr', (qr) => {
+//     console.log('\n📱 Scan this QR Code with your WhatsApp app to link your bot:\n');
+//     qrcode.generate(qr, { small: true });
+// });
 
-// When the WhatsApp Web session is fully loaded
-whatsappClient.on('ready', () => {
-    console.log('✅ WhatsApp Web Client is ready!');
-    isWhatsAppReady = true;
-});
+// // When the WhatsApp Web session is fully loaded
+// whatsappClient.on('ready', () => {
+//     console.log('✅ WhatsApp Web Client is ready!');
+//     isWhatsAppReady = true;
+// });
 
-// If authentication fails
-whatsappClient.on('auth_failure', msg => {
-    console.error('❌ WhatsApp Authentication failure:', msg);
-});
+// // If authentication fails
+// whatsappClient.on('auth_failure', msg => {
+//     console.error('❌ WhatsApp Authentication failure:', msg);
+// });

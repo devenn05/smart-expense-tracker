@@ -136,7 +136,7 @@ export const initiateRegistrationService = async (userData: any) => {
         await sendVerificationWhatsApp(phoneNumber, whatsappOtp);
     }
 
-    return { message: "Verification codes sent.", requiresWhatsAppOtp: !!phoneNumber };
+    return { message: "Verification codes sent.", requiresWhatsAppOtp: false };
 };
 
 
