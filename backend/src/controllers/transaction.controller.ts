@@ -38,8 +38,9 @@ export const getTransaction = asyncHandler(async(req: Request, res: Response)=>{
     let query = Transaction.find({user: req.user?._id});
 
     // Handle Optional Fuzzy "Description" Searching Before Filters Execute
+    const escapeRegex = (string: string) => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     if (req.query.search) {
-        query = query.find({ description: { $regex: req.query.search as string, $options: 'i' } });
+    query = query.find({ description: { $regex: escapeRegex(req.query.search), $options: 'i' } });
     }
 
     // Capture global lengths BEFORE pagination skips happen locally. 

@@ -34,26 +34,23 @@ export const Transactions = () => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  // Debounce Text Typing for Optimal API Calling Rate Mitigation (400ms delay)
+  // Handle Search Debouncing and Page Resets simultaneously
   useEffect(() => {
-    const handler = setTimeout(() => { setDebouncedSearch(searchQuery); }, 400); 
+    const handler = setTimeout(() => { 
+        setDebouncedSearch(searchQuery); 
+        // We also reset the page back to 1 right as the search fires
+        setPage(1); 
+    }, 400); 
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Fallback - Forces Reset Page '1' Upon Changes that Modulate DB Search Sizing Scopes dynamically!
-  useEffect(() => {
-     setPage(1); 
-  }, [filterType, filterCategory, debouncedSearch, sortField, sortOrder, limit]);
-
-  // Unified Query Hook Rebuilder Request 
+  // Single API request trigger
   useEffect(() => {
     const filters: any = { page, limit };
     
     if (filterType) filters.type = filterType;
     if (filterCategory) filters.category = filterCategory;
     if (debouncedSearch) filters.search = debouncedSearch;
-    
-    // Sort logic compilation (-minus sign invokes Mongoose APIFeature logic down-descending automatically)
     if (sortField) filters.sort = sortOrder === 'asc' ? sortField : `-${sortField}`;
 
     dispatch(fetchTransactions(filters));
@@ -68,7 +65,14 @@ export const Transactions = () => {
   const SortableHeader = ({ label, field, className = "" }: { label: string, field: string, className?: string }) => {
     const isActive = sortField === field;
     return (
-      <th scope="col" onClick={() => { isActive ? setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc') : (() => { setSortField(field); setSortOrder('desc'); })() }}
+      <th scope="col" onClick={() => { 
+              if (isActive) {
+                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+              } else { 
+                  setSortField(field); setSortOrder('desc'); 
+              }
+              setPage(1);
+          }}
           className={`px-6 py-4 cursor-pointer select-none group hover:bg-slate-200 transition-colors ${className}`}
       >
           <div className="flex items-center gap-1.5">
@@ -129,7 +133,8 @@ export const Transactions = () => {
                             value={filterType} 
                             onChange={(e) => { 
                                 setFilterType(e.target.value); 
-                                setFilterCategory(''); // <-- Auto-reset category selection!
+                                setFilterCategory('');
+                                setPage(1)
                             }}
                             className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none appearance-none transition-all"
                         >
@@ -144,7 +149,10 @@ export const Transactions = () => {
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Target Category</label>
                     <select 
                         value={filterCategory}
-                        onChange={(e) => setFilterCategory(e.target.value)} 
+                        onChange={(e) => {
+                            setFilterCategory(e.target.value);
+                            setPage(1);
+                        }} 
                         className="w-full px-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all"
                     >
                         <option value="">All Categories</option>
@@ -259,7 +267,10 @@ export const Transactions = () => {
                         
                         <div className="flex items-center gap-2">
                             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Per Page</label>
-                            <select value={limit} onChange={(e) => setLimit(Number(e.target.value))}
+                            <select value={limit} onChange={(e) => {
+                                setLimit(Number(e.target.value));
+                                setPage(1);
+                            }}
                                 className="py-1 px-2 border border-slate-200 rounded-md text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-500 hover:bg-white transition-colors cursor-pointer" >
                                 {[5, 10, 20, 50].map(sz => <option key={sz} value={sz}>{sz}</option>)}
                             </select>

@@ -14,13 +14,19 @@ const loginLimiter = rateLimit({
     message: { success: false, message: 'Too many login attempts, please try again after an hour' }
 })
 
+const otpLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 3, 
+    message: { success: false, message: 'Too many verification attempts. Please wait 15 minutes to prevent spam.' }
+});
+
 router.post('/register', validate(registerSchema), register);
 router.post('/login', loginLimiter, validate(loginSchema), login);
 router.post('/logout', logout);
 router.patch('/update-password', protect, validate(updatePasswordSchema), updatePassword);
 router.post('/refresh', refreshAccessToken);
-router.post('/initialRegister', validate(registerSchema), initialRegister);
-router.post('/verify-otp', validate(verifyOtpSchema), verifyOtp);
+router.post('/initialRegister',otpLimiter,  validate(registerSchema), initialRegister);
+router.post('/verify-otp',otpLimiter, validate(verifyOtpSchema), verifyOtp);
 
 router.get('/me', protect, getMe);
 
