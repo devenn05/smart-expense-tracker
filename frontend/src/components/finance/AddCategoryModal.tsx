@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { categorySchema, updateCategorySchema, type CategoryForm } from "../../utils/validations";
+import { categorySchema, updateCategorySchema } from "../../utils/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../../store/store";

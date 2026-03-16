@@ -19,7 +19,7 @@ import {
 
 export const CategoriesBudgets = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { categories, budgets, isLoading } = useSelector((state: RootState) => state.finance);
+  const { categories, budgets} = useSelector((state: RootState) => state.finance);
   
   // Bring in the analytics data so we know exactly how much they spent this month!
   const { data: analyticsData } = useSelector((state: RootState) => state.analytics);
