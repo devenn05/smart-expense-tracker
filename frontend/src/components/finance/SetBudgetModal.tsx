@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDispatch, useSelector } from 'react-redux';
 import { type AppDispatch, type RootState } from '../../store/store';
@@ -22,9 +23,10 @@ export const SetBudgetModal = ({ onClose, initialData }: { onClose: () => void; 
   const onSubmit = async (data: BudgetForm) => {
     try {
       await dispatch(setBudget(data)).unwrap();
+      toast.success("Budget limit set successfully!"); 
       dispatch(fetchBudget());
       onClose();
-    } catch (error) { alert(error); }
+    } catch (error: any) { toast.error(error.message || error); }
   };
 
   return (

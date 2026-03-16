@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { categorySchema, updateCategorySchema, type CategoryForm } from "../../utils/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch } from "react-redux";
@@ -31,12 +32,14 @@ export const AddCategoryModal = ({ onClose, initialData }: ModalProps) => {
         try {
             if (isEditMode) {
                 await dispatch(updateCategory({ id: initialData._id, data: { name: data.name, color: data.color } })).unwrap();
+                 toast.success("Category updated successfully!"); 
             } else {
                 await dispatch(addCategory({ ...data, color: data.color || '#0ea5e9' })).unwrap();
+                toast.success("Category added successfully!"); 
             }
             dispatch(fetchCategories()); // Refresh the visual list
             onClose();
-        } catch (error) { alert(error); }
+        } catch (error: any) { toast.error(error.message || error);  }
     }
 
     return (

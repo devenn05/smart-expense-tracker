@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDispatch, useSelector } from 'react-redux';
 import { type AppDispatch, type RootState } from '../../store/store';
@@ -53,12 +54,16 @@ export const AddTransactionModal = ({
 
   const onSubmit = async (data: TransactionForm) => {
     try {
-      if (isEditMode)
+      if (isEditMode){
         await dispatch(editTransaction({ id: initialData._id, data })).unwrap();
-      else await dispatch(addTransaction(data)).unwrap();
+        toast.success("Transaction updated successfully!");
+      }else {
+        await dispatch(addTransaction(data)).unwrap();
+        toast.success("Transaction recorded!");
+      }
       onClose();
-    } catch (error) {
-      alert(error);
+    } catch (error: any) {
+      toast.error(error.message || error);
     }
   };
 

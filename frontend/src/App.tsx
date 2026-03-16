@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import './App.css'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
@@ -33,6 +34,13 @@ function App() {
 
   return (
     <>
+      <Toaster 
+        position="top-right" 
+        toastOptions={{ 
+            duration: 4000,
+            style: { background: '#fff', color: '#334155', fontWeight: '500' }
+        }} 
+      />
       <BrowserRouter>
         <Routes>
           <Route element={<AuthLayout/>}>
