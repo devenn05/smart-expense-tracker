@@ -4,7 +4,7 @@ import { Transaction } from "../models/Transaction";
 import { APIFeatures } from "../utils/apiFeatures";
 import { AppError } from "../utils/AppError";
 import { Category } from "../models/Category";
-import { checkAndTriggerBudgetAlert } from "../services/alert.service";
+import { checkAndTriggerBudgetAlert, checkAndTriggerAnomalyAlert } from "../services/alert.service";
 
 // Add a new transaction
 export const createTransaction = asyncHandler(async(req: Request, res: Response)=>{
@@ -26,7 +26,9 @@ export const createTransaction = asyncHandler(async(req: Request, res: Response)
 
     // TRIGGER BUDGET CHECK in the background asynchronously!
     if (type === 'expense') {
-        checkAndTriggerBudgetAlert(req.user?._id.toString()!, category);
+        const uid = req.user?._id.toString()!;
+        checkAndTriggerBudgetAlert(uid, category);
+        checkAndTriggerAnomalyAlert(uid, category);
     }
 
     const populatedTransaction = await transaction.populate('category', 'name color type');
@@ -37,10 +39,16 @@ export const createTransaction = asyncHandler(async(req: Request, res: Response)
 export const getTransaction = asyncHandler(async(req: Request, res: Response)=>{
     let query = Transaction.find({user: req.user?._id});
 
-    // Handle Optional Fuzzy "Description" Searching Before Filters Execute
-    const escapeRegex = (string: string) => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    if (req.query.search) {
-    query = query.find({ description: { $regex: escapeRegex(req.query.search), $options: 'i' } });
+    // Helper function to prevent Regex Denial of Service (ReDoS)
+    const escapeRegex = (text: string) => text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+
+    // Make sure search exists AND is explicitly a string to satisfy TypeScript
+    if (req.query.search && typeof req.query.search === 'string') {
+        const safeSearchString = escapeRegex(req.query.search);
+        
+        query = query.find({ 
+            description: { $regex: safeSearchString, $options: 'i' } 
+        });
     }
 
     // Capture global lengths BEFORE pagination skips happen locally. 
@@ -90,7 +98,10 @@ export const updateTransaction = asyncHandler(async (req: Request, res: Response
 
     // TRIGGER CHECK HERE TOO (incase editing an amount broke the limit!)
     if (newType === 'expense') {
-        checkAndTriggerBudgetAlert(req.user?._id.toString()!, newCategory.toString());
+        const uid = req.user?._id.toString()!;
+        const catStr = newCategory.toString();
+        checkAndTriggerBudgetAlert(uid, catStr);
+        checkAndTriggerAnomalyAlert(uid, catStr);
     }
 
     res.status(200).json({ success: true, data: transaction });

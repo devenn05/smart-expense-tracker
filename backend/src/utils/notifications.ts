@@ -119,3 +119,46 @@ export const sendBudgetAlertWhatsApp = async (phone: string, categoryName: strin
         console.error('❌ WhatsApp Alert failed:', error.message);
     }
 };
+
+//-----------------------------------------------40% AnomalyAlert ------------------------------------------------------------------------
+
+
+export const sendAnomalyAlertEmail = async (email: string, name: string, categoryName: string, historicalAverage: number, currentSpent: number) => {
+    try {
+        const mailOptions = {
+            from: `"SmartExp Alerts" <${process.env.SMTP_EMAIL}>`,
+            to: email,
+            subject: `⚠️ Spending Anomaly Detected: ${categoryName}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #fef3c7; border-radius: 10px; background-color: #fffbeb;">
+                    <h2 style="color: #d97706; margin-top: 0;">Unusual Spending Detected!</h2>
+                    <p style="color: #4c1d95; font-size: 16px;">Hi ${name},</p>
+                    <p style="color: #92400e; font-size: 16px;">We noticed your spending in <strong>${categoryName}</strong> is significantly higher this month than your usual patterns.</p>
+                    <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 0; color: #b45309;"><strong>3-Month Average:</strong> $${historicalAverage.toFixed(2)}</p>
+                        <p style="margin: 5px 0 0 0; color: #d97706;"><strong>Spent This Month:</strong> $${currentSpent.toFixed(2)}</p>
+                    </div>
+                    <p style="color: #92400e; font-size: 14px;">Review your expenses in the SmartExp Dashboard to ensure you stay on track.</p>
+                </div>
+            `
+        };
+        await transporter.sendMail(mailOptions);
+        console.log(`✉️ Anomaly Email sent successfully to ${email}`);
+    } catch (error) {
+        console.error('❌ Anomaly Email failed:', error);
+    }
+};
+
+export const sendAnomalyAlertWhatsApp = async (phone: string, categoryName: string, historicalAverage: number, currentSpent: number) => {
+    if (!isWhatsAppReady) return false;
+    try {
+        const formattedNumber = formatWhatsAppNumber(phone);
+        const message = `⚠️ *SmartExp Anomaly Alert*\n\nYour spending in *${categoryName}* is unusually high this month compared to your typical history!\n\nAverage: $${historicalAverage.toFixed(2)}\nCurrent: $${currentSpent.toFixed(2)}\n\n_Stay mindful of your expenses today!_`;
+        
+        await whatsappClient.sendMessage(formattedNumber, message);
+        console.log(`📱 WhatsApp Anomaly Alert sent successfully to ${phone}`);
+        return true;
+    } catch (error: any) {
+        console.error('❌ WhatsApp Anomaly Alert failed:', error.message);
+    }
+};

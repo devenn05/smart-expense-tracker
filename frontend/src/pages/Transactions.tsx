@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { type AppDispatch, type RootState } from '../store/store';
 import { fetchTransactions, deleteTransaction, type Transaction } from '../store/slices/transactionSlice'; 
@@ -57,9 +58,31 @@ export const Transactions = () => {
   }, [dispatch, filterType, filterCategory, page, limit, debouncedSearch, sortField, sortOrder]);
 
 
-  const handleDelete = (id: string) => {
-    if(window.confirm('Are you sure you want to delete this transaction?')) { dispatch(deleteTransaction(id)); }
-  };
+const handleDelete = (id: string) => {
+  toast((t) => (
+    <div className="flex flex-col gap-1">
+      <p className="text-sm font-medium">Delete this transaction?</p>
+      <div className="flex gap-2 mt-2">
+        <button
+          onClick={() => {
+            dispatch(deleteTransaction(id));
+            toast.dismiss(t.id);
+            toast.success("Transaction deleted");
+          }}
+          className="bg-green-600 text-white px-3 py-1 rounded-md text-xs font-semibold"
+        >
+          Confirm
+        </button>
+        <button 
+          onClick={() => toast.dismiss(t.id)}
+          className="bg-red-600 text-white px-3 py-1 rounded-md text-xs font-semibold"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  ), { duration: 4000 });
+};
 
   // Re-useable Layout Generating Render Method building table columns quickly enabling UI Sorting Interaction Click Features Globally 
   const SortableHeader = ({ label, field, className = "" }: { label: string, field: string, className?: string }) => {

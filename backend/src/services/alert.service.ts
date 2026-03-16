@@ -3,7 +3,7 @@ import { Budget } from "../models/Budget";
 import { Transaction } from "../models/Transaction";
 import { AlertHistory } from "../models/AlertHistory";
 import { User } from "../models/User";
-import { sendBudgetAlertEmail, sendBudgetAlertWhatsApp } from "../utils/notifications";
+import { sendBudgetAlertEmail, sendBudgetAlertWhatsApp, sendAnomalyAlertEmail, sendAnomalyAlertWhatsApp } from "../utils/notifications";
 
 export const checkAndTriggerBudgetAlert = async (userId: string, categoryId: string) => {
     try {
@@ -73,5 +73,93 @@ export const checkAndTriggerBudgetAlert = async (userId: string, categoryId: str
 
     } catch (error) {
         console.error("Alert Trigger Failed:", error);
+    }
+};
+
+export const checkAndTriggerAnomalyAlert = async (userId: string, categoryId: string) => {
+    try {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        const monthYearString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+
+        // 1. Did we already warn them about an anomaly for this category this month? (Anti-spam!)
+        const alreadyWarned = await AlertHistory.exists({
+            user: userId,
+            category: categoryId,
+            alertType: 'OVERSPENDING_ANOMALY',
+            monthYear: monthYearString
+        });
+        if (alreadyWarned) return;
+
+        // 2. Fetch History Dates (Strictly 3 prior months)
+        const startOfHistory = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        const endOfHistory = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+        // 3. Mathematical Pipeline - specifically target just this ONE category
+        const historyData = await Transaction.aggregate([
+            {
+                $match: {
+                    user: new mongoose.Types.ObjectId(userId),
+                    category: new mongoose.Types.ObjectId(categoryId),
+                    type: 'expense',
+                    date: { $gte: startOfHistory, $lte: endOfHistory }
+                }
+            },
+            {
+                $group: { _id: { month: { $month: '$date' }, year: { $year: '$date' } }, monthlyTotal: { $sum: '$amount' } }
+            },
+            {
+                $group: { _id: null, historicalAverage: { $avg: '$monthlyTotal' }, monthsOfData: { $sum: 1 } }
+            }
+        ]);
+
+        const historicalAverage = historyData[0]?.historicalAverage || 0;
+        
+        // If they have no real history yet, we shouldn't blast them with alerts
+        if (historicalAverage === 0) return;
+
+        // 4. Find how much they spent this current month so far
+        const currentSpentData = await Transaction.aggregate([
+            {
+                $match: {
+                    user: new mongoose.Types.ObjectId(userId),
+                    category: new mongoose.Types.ObjectId(categoryId),
+                    type: 'expense',
+                    date: { $gte: startOfMonth, $lte: endOfMonth }
+                }
+            },
+            {
+                $group: { _id: null, total: { $sum: '$amount' } }
+            }
+        ]);
+
+        const currentSpent = currentSpentData[0]?.total || 0;
+
+        // 5. THE RULE: Is current spending strictly > 40% of their history?
+        if (currentSpent > (historicalAverage * 1.4)) {
+
+            // Log to prevent duplicate alerts!
+            await AlertHistory.create({
+                user: userId,
+                category: categoryId,
+                alertType: 'OVERSPENDING_ANOMALY',
+                monthYear: monthYearString
+            });
+
+            // Trigger Notifications
+            const user = await User.findById(userId);
+            const transactionDoc = await Transaction.findOne({ category: categoryId }).populate('category', 'name');
+            const categoryName = transactionDoc ? (transactionDoc.category as any).name : 'Expense';
+
+            if (user?.alertPreferences.email) {
+                await sendAnomalyAlertEmail(user.email, user.name, categoryName, historicalAverage, currentSpent);
+            }
+            if (user?.alertPreferences.whatsapp && user.phoneNumber) {
+                await sendAnomalyAlertWhatsApp(user.phoneNumber, categoryName, historicalAverage, currentSpent);
+            }
+        }
+    } catch (error) {
+        console.error("Anomaly Alert Trigger Failed:", error);
     }
 };
