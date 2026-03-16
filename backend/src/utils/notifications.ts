@@ -88,8 +88,8 @@ export const sendBudgetAlertEmail = async (email: string, name: string, category
                     <p style="color: #4c1d95; font-size: 16px;">Hi ${name},</p>
                     <p style="color: #881337; font-size: 16px;">You have just exceeded your monthly limit for <strong>${categoryName}</strong>.</p>
                     <div style="background-color: #ffe4e6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                        <p style="margin: 0; color: #9f1239;"><strong>Monthly Budget:</strong> $${budgetLimit.toFixed(2)}</p>
-                        <p style="margin: 5px 0 0 0; color: #e11d48;"><strong>Currently Spent:</strong> $${currentSpent.toFixed(2)}</p>
+                        <p style="margin: 0; color: #9f1239;"><strong>Monthly Budget:</strong> ₹${budgetLimit.toFixed(2)}</p>
+                        <p style="margin: 5px 0 0 0; color: #e11d48;"><strong>Currently Spent:</strong> ₹${currentSpent.toFixed(2)}</p>
                     </div>
                     <p style="color: #9f1239; font-size: 14px;">You can review your spending in your SmartExp Dashboard.</p>
                 </div>
@@ -110,7 +110,7 @@ export const sendBudgetAlertWhatsApp = async (phone: string, categoryName: strin
 
     try {
         const formattedNumber = formatWhatsAppNumber(phone);
-        const message = `🚨 *SmartExp Alert*\n\nYou have crossed your monthly budget for *${categoryName}*!\n\nLimit: $${limit.toFixed(2)}\nSpent: $${spent.toFixed(2)}\n\n_Review your expenses in the SmartExp app._`;
+        const message = `🚨 *SmartExp Alert*\n\nYou have crossed your monthly budget for *${categoryName}*!\n\nLimit: ₹${limit.toFixed(2)}\nSpent: ₹${spent.toFixed(2)}\n\n_Review your expenses in the SmartExp app._`;
 
         await whatsappClient.sendMessage(formattedNumber, message);
         console.log(`📱 WhatsApp Alert sent successfully to ${phone}`);
@@ -135,8 +135,8 @@ export const sendAnomalyAlertEmail = async (email: string, name: string, categor
                     <p style="color: #4c1d95; font-size: 16px;">Hi ${name},</p>
                     <p style="color: #92400e; font-size: 16px;">We noticed your spending in <strong>${categoryName}</strong> is significantly higher this month than your usual patterns.</p>
                     <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                        <p style="margin: 0; color: #b45309;"><strong>3-Month Average:</strong> $${historicalAverage.toFixed(2)}</p>
-                        <p style="margin: 5px 0 0 0; color: #d97706;"><strong>Spent This Month:</strong> $${currentSpent.toFixed(2)}</p>
+                        <p style="margin: 0; color: #b45309;"><strong>3-Month Average:</strong> ₹${historicalAverage.toFixed(2)}</p>
+                        <p style="margin: 5px 0 0 0; color: #d97706;"><strong>Spent This Month:</strong> ₹${currentSpent.toFixed(2)}</p>
                     </div>
                     <p style="color: #92400e; font-size: 14px;">Review your expenses in the SmartExp Dashboard to ensure you stay on track.</p>
                 </div>
@@ -153,7 +153,7 @@ export const sendAnomalyAlertWhatsApp = async (phone: string, categoryName: stri
     if (!isWhatsAppReady) return false;
     try {
         const formattedNumber = formatWhatsAppNumber(phone);
-        const message = `⚠️ *SmartExp Anomaly Alert*\n\nYour spending in *${categoryName}* is unusually high this month compared to your typical history!\n\nAverage: $${historicalAverage.toFixed(2)}\nCurrent: $${currentSpent.toFixed(2)}\n\n_Stay mindful of your expenses today!_`;
+        const message = `⚠️ *SmartExp Anomaly Alert*\n\nYour spending in *${categoryName}* is unusually high this month compared to your typical history!\n\nAverage: ₹${historicalAverage.toFixed(2)}\nCurrent: ₹${currentSpent.toFixed(2)}\n\n_Stay mindful of your expenses!_`;
         
         await whatsappClient.sendMessage(formattedNumber, message);
         console.log(`📱 WhatsApp Anomaly Alert sent successfully to ${phone}`);

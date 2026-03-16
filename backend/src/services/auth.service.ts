@@ -35,22 +35,6 @@ const generateAndStoreRefreshToken = async (userId: string) => {
     return rawRefreshToken;
 };
 
-export const registerUserService = async (userData: any) => {
-    const {name, email, password} = userData;
-    const existingUser = await User.findOne({email})
-    if (existingUser){
-        throw new AppError('Email is already in use, please Login.', 400);
-    }
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const user = await User.create({ name, email, password: hashedPassword });
-
-    const accessToken = signAccessToken(user._id.toString());
-    const refreshToken = await generateAndStoreRefreshToken(user._id.toString());
-    
-    return {user, accessToken, refreshToken}
-}
-
 export const loginUserService = async (userData: any)=> {
     const {email, password} = userData;
     const user = await User.findOne({ email }).select('+password');
@@ -124,7 +108,7 @@ export const initiateRegistrationService = async (userData: any) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new AppError('Email is already in use, please Login.', 400);
 
-    // 👇 ADD THIS BLOCK: Ensure phone number isn't already linked to another account
+    // Ensure phone number isn't already linked to another account
     if (phoneNumber) {
         const existingPhone = await User.findOne({ phoneNumber });
         if (existingPhone) {

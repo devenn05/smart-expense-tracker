@@ -178,7 +178,7 @@ const handleDeleteCategory = (id: string) => {
                         
                         <div className="flex items-center gap-2 sm:gap-3">
                             <span className="text-sm font-bold text-slate-700 bg-slate-200/60 px-2 py-0.5 rounded border border-slate-200">
-                              Limit: ${b.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              Limit: ₹{b.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                             <button
                               onClick={() => { setSelectedBudget(b); setIsBudgetModalOpen(true); }}
@@ -202,12 +202,12 @@ const handleDeleteCategory = (id: string) => {
                       {/* Descriptive Financial Math UI Footer Tracker Component Grid Elements Block Output Form Format Block Rendering Variables Display Matrix Mapping Structure Array Module UI Formatting Model Container Styles Logic Form Model Format Block Values Visual Components Graph Module Graphic Rendering Container Element Engine Container Logic Matrix CSS Container Render Render Matrix Logic Container Structure Display Mapping Structure Value Map Logic Styles Logic Format Map Logic Node Value Form Formatting Form Block Logic Matrix Node Data Element Data Framework Map Display Block Structure Block Values Block Logic  */}
                       <div className="flex justify-between text-xs font-semibold">
                         <span className="text-slate-500">
-                          Spent: <span className="text-slate-700">${spentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          Spent: <span className="text-slate-700">₹{spentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </span>
                         
                         {remaining < 0 ? (
                             <span className="text-rose-600 font-bold animate-pulse flex items-center gap-1">
-                                Overspent by ${Math.abs(remaining).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                Overspent by ₹{Math.abs(remaining).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         ) : (
                             <span className={`${percent >= 90 ? 'text-rose-500' : 'text-slate-500'}`}>

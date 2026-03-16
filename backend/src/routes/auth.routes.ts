@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, logout, getMe, updatePassword, refreshAccessToken, initialRegister, verifyOtp } from "../controllers/auth.controller";
+import { login, logout, getMe, updatePassword, refreshAccessToken, initialRegister, verifyOtp } from "../controllers/auth.controller";
 import { protect } from "../middlewares/authMiddleware";
 import { validate } from "../middlewares/validateRequest";
 import { registerSchema, loginSchema, updatePasswordSchema, verifyOtpSchema } from "../schemas/auth.schema";
@@ -20,7 +20,6 @@ const otpLimiter = rateLimit({
     message: { success: false, message: 'Too many verification attempts. Please wait 15 minutes to prevent spam.' }
 });
 
-router.post('/register', validate(registerSchema), register);
 router.post('/login', loginLimiter, validate(loginSchema), login);
 router.post('/logout', logout);
 router.patch('/update-password', protect, validate(updatePasswordSchema), updatePassword);

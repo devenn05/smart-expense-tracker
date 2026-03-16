@@ -31,7 +31,7 @@ export const Dashboard = () => {
     const { totals, categoryBreakdown, overspending, predictions } = data;
 
     // Currency Formatter Helper
-    const formatCurrency = (val: number) => `$${(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    const formatCurrency = (val: number) => `₹${(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 
     return(
         <div className="space-y-8 animate-in fade-in duration-500">

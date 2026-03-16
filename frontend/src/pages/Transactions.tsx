@@ -255,7 +255,7 @@ const handleDelete = (id: string) => {
 
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-right">
                                             <span className={t.type === 'income' ? 'text-emerald-600' : 'text-slate-700'}>
-                                                {t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                {t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                             </span>
                                         </td>
 

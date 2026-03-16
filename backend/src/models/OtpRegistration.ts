@@ -14,9 +14,9 @@ const otpRegistrationSchema: Schema<IOtpRegistration> = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
   passwordHash: { type: String, required: true },
-  phoneNumber: { type: String }, // Optional
+  phoneNumber: { type: String }, 
   emailOtp: { type: String, required: true },
-  whatsappOtp: { type: String }, // Optional
+  whatsappOtp: { type: String }, 
   // This document automatically deletes itself after 15 minutes (900 seconds)
   createdAt: { type: Date, default: Date.now, expires: 900 },
 });

@@ -12,7 +12,7 @@ import {
   transactionFormSchema,
   type TransactionForm,
 } from '../../utils/validations';
-import { Loader2, DollarSign, CalendarIcon, PenLine } from 'lucide-react';
+import { Loader2, IndianRupee, CalendarIcon, PenLine } from 'lucide-react';
 
 export const AddTransactionModal = ({
   onClose,
@@ -101,7 +101,7 @@ export const AddTransactionModal = ({
           Amount
         </label>
         <div className="relative">
-          <DollarSign className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <IndianRupee className="absolute left-3 top-4 h-4 w-4 text-slate-400" />
           <input
             type="number"
             step="0.01"

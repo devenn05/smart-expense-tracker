@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUserService, loginUserService, logoutUserService,  updateUserPasswordService, refreshAccessTokenService, initiateRegistrationService, verifyOtpService } from "../services/auth.service";
+import { loginUserService, logoutUserService,  updateUserPasswordService, refreshAccessTokenService, initiateRegistrationService, verifyOtpService } from "../services/auth.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../utils/AppError";
 
@@ -25,11 +25,6 @@ const sendTokenResponse = (userDoc: any, accessToken: string, refreshToken: stri
         success: true, user
     });
 };
-
-export const register = asyncHandler(async (req: Request, res: Response)=>{
-    const {user, accessToken, refreshToken} = await registerUserService(req.body);
-    sendTokenResponse(user, accessToken, refreshToken, 201, res);
-});
 
 export const login = asyncHandler(async (req:Request, res: Response)=>{
     const {user, accessToken, refreshToken} = await loginUserService(req.body);

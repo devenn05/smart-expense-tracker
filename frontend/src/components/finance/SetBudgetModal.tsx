@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { type AppDispatch, type RootState } from '../../store/store';
 import { setBudget, fetchBudget, type Budget } from '../../store/slices/financeSlice';
 import { budgetSchema, type BudgetForm } from '../../utils/validations';
-import { Loader2, DollarSign } from 'lucide-react';
+import { Loader2, IndianRupee } from 'lucide-react';
 
 export const SetBudgetModal = ({ onClose, initialData }: { onClose: () => void; initialData?: Budget | null }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,7 +46,7 @@ export const SetBudgetModal = ({ onClose, initialData }: { onClose: () => void; 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Monthly Spending Limit</label>
         <div className="relative">
-            <DollarSign className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <IndianRupee className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <input type="number" step="0.01" {...register('amount', { valueAsNumber: true })} className="block w-full pl-9 pr-3 py-2.5 bg-slate-50 border rounded-lg text-sm outline-none transition-all" />
         </div>
       </div>
