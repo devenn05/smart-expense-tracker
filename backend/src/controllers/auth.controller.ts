@@ -9,10 +9,12 @@ const sendTokenResponse = (userDoc: any, accessToken: string, refreshToken: stri
     const accessTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes for access token cookie
     const refreshTokenExpires = new Date(Date.now() + cookieExpireDays * 24 * 60 * 60 * 1000);
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     const commonCookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict' as const,
+        secure: isProduction, // MUST be true for 'none' to work
+        sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax' // Allows cross-site cookies in production
     };
 
     res.cookie('jwt', accessToken, { ...commonCookieOptions, expires: accessTokenExpires });
@@ -35,9 +37,19 @@ export const logout = asyncHandler(async ( req: Request, res: Response)=>{
     const { refreshToken } = req.cookies;
     await logoutUserService(refreshToken);
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // Must exactly match the attributes used to create the cookie, otherwise the browser refuses to delete it!
+    const clearCookieOptions = { 
+        httpOnly: true,
+        secure: isProduction, 
+        sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+        expires: new Date(Date.now() + 10 * 1000)
+    };
+
     // Clear both cookies
-    res.cookie('jwt', 'loggedout', { expires: new Date(Date.now() + 10 * 1000), httpOnly: true });
-    res.cookie('refreshToken', 'loggedout', { expires: new Date(Date.now() + 10 * 1000), httpOnly: true });
+    res.cookie('jwt', 'loggedout', clearCookieOptions);
+    res.cookie('refreshToken', 'loggedout', clearCookieOptions);
 
     res.status(200).json({ success: true, message: 'User successfully logged out' });
 });
@@ -51,11 +63,13 @@ export const refreshAccessToken = asyncHandler(async (req: Request, res: Respons
     const { accessToken } = await refreshAccessTokenService(refreshToken);
 
     const accessTokenExpires = new Date(Date.now() + 15 * 60 * 1000);
+    const isProduction = process.env.NODE_ENV === 'production';
+
     res.cookie('jwt', accessToken, {
         expires: accessTokenExpires,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict' as const,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax' as const,
     });
 
     res.status(200).json({ success: true, message: 'Token refreshed' });
@@ -71,12 +85,14 @@ export const updatePassword = asyncHandler(async (req: Request, res: Response) =
     const accessTokenExpires = new Date(Date.now() + 15 * 60 * 1000);
     const userObject = user.toObject();
     delete (userObject as any).password;
+    
+    const isProduction = process.env.NODE_ENV === 'production';
 
     res.status(200).cookie('jwt', token, {
         expires: accessTokenExpires,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict' as const,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax' as const,
     }).json({
         success: true, user: userObject
     });
