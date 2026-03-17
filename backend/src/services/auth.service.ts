@@ -121,7 +121,7 @@ export const initiateRegistrationService = async (userData: any) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     
     const emailOtp = generateOTP();
-    const whatsappOtp = phoneNumber ? generateOTP() : undefined;
+    const whatsappOtp = undefined; // Temporarily force whatsappOtp to be undefined
 
     // 3. Save to Temporary Storage
     await OtpRegistration.findOneAndUpdate(
@@ -151,9 +151,9 @@ export const verifyOtpService = async (data: any) => {
     if (tempRecord.emailOtp !== emailOtp) {
         throw new AppError('Invalid Email OTP', 400);
     }
-    if (tempRecord.phoneNumber && tempRecord.whatsappOtp !== whatsappOtp) {
-        throw new AppError('Invalid WhatsApp OTP', 400);
-    }
+    // if (tempRecord.phoneNumber && tempRecord.whatsappOtp !== whatsappOtp) {
+    //     throw new AppError('Invalid WhatsApp OTP', 400);
+    // }
 
     // 3. Create the Real User
     const user = await User.create({
@@ -163,7 +163,7 @@ export const verifyOtpService = async (data: any) => {
         phoneNumber: tempRecord.phoneNumber,
         alertPreferences: {
             email: true,
-            whatsapp: !!tempRecord.phoneNumber
+            whatsapp: false //Set to false by default since WhatsApp is off on Render
         }
     });
 

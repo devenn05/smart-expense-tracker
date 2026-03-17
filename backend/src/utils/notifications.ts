@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import nodemailer from 'nodemailer';
-//import { whatsappClient, isWhatsAppReady } from '../services/whatsapp.service';
+import { whatsappClient, isWhatsAppReady } from '../services/whatsapp.service';
 
 const transporter = nodemailer.createTransport({
     // Using host and port directly is more reliable than service: 'gmail'
@@ -55,24 +55,24 @@ export const sendVerificationEmail = async (email: string, name: string, otp: st
     }
 };
 
-// export const sendVerificationWhatsApp = async (phone: string, otp: string) => {
-//     if (!isWhatsAppReady) {
-//         console.log('⚠️ WhatsApp bot not ready yet. Skipping WhatsApp OTP.');
-//         return false;
-//     }
+export const sendVerificationWhatsApp = async (phone: string, otp: string) => {
+    if (!isWhatsAppReady) {
+        console.log('⚠️ WhatsApp bot not ready yet. Skipping WhatsApp OTP.');
+        return false;
+    }
 
-//     try {
-//         const formattedNumber = formatWhatsAppNumber(phone);
-//         const message = `*SmartExp Security*\n\nYour verification code is: *${otp}*\n\nThis code expires in 15 minutes.`;
+    try {
+        const formattedNumber = formatWhatsAppNumber(phone);
+        const message = `*SmartExp Security*\n\nYour verification code is: *${otp}*\n\nThis code expires in 15 minutes.`;
         
-//         // This makes your actual WhatsApp send the text!
-//         await whatsappClient.sendMessage(formattedNumber, message);
-//         console.log(`📱 WhatsApp OTP sent successfully to ${phone}`);
-//         return true;
-//     } catch (error: any) {
-//         console.error('❌ WhatsApp OTP failed:', error.message);
-//     }
-// };
+        // This makes your actual WhatsApp send the text!
+        await whatsappClient.sendMessage(formattedNumber, message);
+        console.log(`📱 WhatsApp OTP sent successfully to ${phone}`);
+        return true;
+    } catch (error: any) {
+        console.error('❌ WhatsApp OTP failed:', error.message);
+    }
+};
 
 //------------------------------------------Budget Alerts---------------------------------------------------------------//
 
@@ -102,23 +102,23 @@ export const sendBudgetAlertEmail = async (email: string, name: string, category
     }
 };
 
-// export const sendBudgetAlertWhatsApp = async (phone: string, categoryName: string, limit: number, spent: number) => {
-//     if (!isWhatsAppReady) {
-//         console.log('⚠️ WhatsApp bot not ready yet. Skipping Alert.');
-//         return false;
-//     }
+export const sendBudgetAlertWhatsApp = async (phone: string, categoryName: string, limit: number, spent: number) => {
+    if (!isWhatsAppReady) {
+        console.log('⚠️ WhatsApp bot not ready yet. Skipping Alert.');
+        return false;
+    }
 
-//     try {
-//         const formattedNumber = formatWhatsAppNumber(phone);
-//         const message = `🚨 *SmartExp Alert*\n\nYou have crossed your monthly budget for *${categoryName}*!\n\nLimit: ₹${limit.toFixed(2)}\nSpent: ₹${spent.toFixed(2)}\n\n_Review your expenses in the SmartExp app._`;
+    try {
+        const formattedNumber = formatWhatsAppNumber(phone);
+        const message = `🚨 *SmartExp Alert*\n\nYou have crossed your monthly budget for *${categoryName}*!\n\nLimit: ₹${limit.toFixed(2)}\nSpent: ₹${spent.toFixed(2)}\n\n_Review your expenses in the SmartExp app._`;
 
-//         await whatsappClient.sendMessage(formattedNumber, message);
-//         console.log(`📱 WhatsApp Alert sent successfully to ${phone}`);
-//         return true;
-//     } catch (error: any) {
-//         console.error('❌ WhatsApp Alert failed:', error.message);
-//     }
-// };
+        await whatsappClient.sendMessage(formattedNumber, message);
+        console.log(`📱 WhatsApp Alert sent successfully to ${phone}`);
+        return true;
+    } catch (error: any) {
+        console.error('❌ WhatsApp Alert failed:', error.message);
+    }
+};
 
 //-----------------------------------------------40% AnomalyAlert ------------------------------------------------------------------------
 
@@ -149,35 +149,16 @@ export const sendAnomalyAlertEmail = async (email: string, name: string, categor
     }
 };
 
-// export const sendAnomalyAlertWhatsApp = async (phone: string, categoryName: string, historicalAverage: number, currentSpent: number) => {
-//     if (!isWhatsAppReady) return false;
-//     try {
-//         const formattedNumber = formatWhatsAppNumber(phone);
-//         const message = `⚠️ *SmartExp Anomaly Alert*\n\nYour spending in *${categoryName}* is unusually high this month compared to your typical history!\n\nAverage: ₹${historicalAverage.toFixed(2)}\nCurrent: ₹${currentSpent.toFixed(2)}\n\n_Stay mindful of your expenses!_`;
-        
-//         await whatsappClient.sendMessage(formattedNumber, message);
-//         console.log(`📱 WhatsApp Anomaly Alert sent successfully to ${phone}`);
-//         return true;
-//     } catch (error: any) {
-//         console.error('❌ WhatsApp Anomaly Alert failed:', error.message);
-//     }
-// };
-
-
-
-//------------------------------For now keep this
-
-export const sendVerificationWhatsApp = async (phone: string, otp: string) => {
-    console.log('⚠️ WhatsApp disabled. Skipping OTP.');
-    return false;
-};
-
-export const sendBudgetAlertWhatsApp = async (phone: string, categoryName: string, limit: number, spent: number) => {
-    console.log('⚠️ WhatsApp disabled. Skipping Budget Alert.');
-    return false;
-};
-
 export const sendAnomalyAlertWhatsApp = async (phone: string, categoryName: string, historicalAverage: number, currentSpent: number) => {
-     console.log('⚠️ WhatsApp disabled. Skipping Anomaly Alert.');
-     return false;
+    if (!isWhatsAppReady) return false;
+    try {
+        const formattedNumber = formatWhatsAppNumber(phone);
+        const message = `⚠️ *SmartExp Anomaly Alert*\n\nYour spending in *${categoryName}* is unusually high this month compared to your typical history!\n\nAverage: ₹${historicalAverage.toFixed(2)}\nCurrent: ₹${currentSpent.toFixed(2)}\n\n_Stay mindful of your expenses!_`;
+        
+        await whatsappClient.sendMessage(formattedNumber, message);
+        console.log(`📱 WhatsApp Anomaly Alert sent successfully to ${phone}`);
+        return true;
+    } catch (error: any) {
+        console.error('❌ WhatsApp Anomaly Alert failed:', error.message);
+    }
 };

@@ -1,9 +1,7 @@
 {
-  "compilerOptions": {
+ "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "allowSyntheticDefaultImports": true,
+    "module": "CommonJS",
     "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
@@ -14,6 +12,7 @@
     "sourceMap": true,
     "noUncheckedIndexedAccess": true,
     "jsx": "react-jsx",
+    "noEmitOnError": false, 
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": ["src/**/*"],
