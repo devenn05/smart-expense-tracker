@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { loginUserService, logoutUserService,  updateUserPasswordService, refreshAccessTokenService, initiateRegistrationService, verifyOtpService } from "../services/auth.service";
-import { asyncHandler } from "../utils/asyncHandler";
-import { AppError } from "../utils/AppError";
+import { loginUserService, logoutUserService,  updateUserPasswordService, refreshAccessTokenService, initiateRegistrationService, verifyOtpService } from "../services/auth.service.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { AppError } from "../utils/AppError.js";
 
 const sendTokenResponse = (userDoc: any, accessToken: string, refreshToken: string, statusCode: number, res: Response)=>{
     const cookieExpireDays = parseInt(process.env.JWT_COOKIE_EXPIRES_IN || '7', 10);

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { generateDashboardAnalytics } from "../services/analytics.service";
-import { asyncHandler } from "../utils/asyncHandler";
-import { AppError } from "../utils/AppError";
-import { detectOverspending } from "../services/insight.service";
+import { generateDashboardAnalytics } from "../services/analytics.service.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { AppError } from "../utils/AppError.js";
+import { detectOverspending } from "../services/insight.service.js";
 
 export const getAnalytics = asyncHandler( async(req: Request, res: Response)=>{
     if (!req.user){

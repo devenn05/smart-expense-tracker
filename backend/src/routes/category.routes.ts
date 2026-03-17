@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { getCategories, deleteCategory, createCategory, updateCategory } from "../controllers/category.controller";
-import { protect } from "../middlewares/authMiddleware";
-import { validate } from "../middlewares/validateRequest";
-import { createCategorySchema, updateCategorySchema } from "../schemas/finance.schema";
+import { getCategories, deleteCategory, createCategory, updateCategory } from "../controllers/category.controller.js";
+import { protect } from "../middlewares/authMiddleware.js";
+import { validate } from "../middlewares/validateRequest.js";
+import { createCategorySchema, updateCategorySchema } from "../schemas/finance.schema.js";
 
 const router = Router();
 

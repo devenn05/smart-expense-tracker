@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
 import bcrypt from 'bcrypt';
-import { User } from "../models/User";
-import { AppError } from "../utils/AppError";
+import { User } from "../models/User.js";
+import { AppError } from "../utils/AppError.js";
 import crypto from "crypto";
-import { RefreshToken } from "../models/RefreshToken";
-import { OtpRegistration } from "../models/OtpRegistration";
-import { sendVerificationEmail, sendVerificationWhatsApp } from "../utils/notifications";
+import { RefreshToken } from "../models/RefreshToken.js";
+import { OtpRegistration } from "../models/OtpRegistration.js";
+import { sendVerificationEmail, sendVerificationWhatsApp } from "../utils/notifications.js";
 
 
 // Helper to generate the JWT Token

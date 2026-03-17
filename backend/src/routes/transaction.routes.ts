@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { transactionSchema } from "../schemas/finance.schema";
-import { createTransaction, deleteTransaction, updateTransaction, getTransaction } from "../controllers/transaction.controller";
-import { protect } from "../middlewares/authMiddleware";
-import { validate } from "../middlewares/validateRequest";
+import { transactionSchema } from "../schemas/finance.schema.js";
+import { createTransaction, deleteTransaction, updateTransaction, getTransaction } from "../controllers/transaction.controller.js";
+import { protect } from "../middlewares/authMiddleware.js";
+import { validate } from "../middlewares/validateRequest.js";
 
 const router = Router();
 

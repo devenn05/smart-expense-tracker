@@ -2,12 +2,12 @@ import express, {Application, Request, Response} from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from "helmet";
-import { errorHandler } from './middlewares/errorHandler';
-import authRoutes from './routes/auth.routes';
-import categoryRoutes from './routes/category.routes'
-import budgetRoutes from './routes/budget.routes'
-import transactionRoutes from './routes/transaction.routes';
-import analyticsRoutes from './routes/analytics.routes';
+import { errorHandler } from './middlewares/errorHandler.js';
+import authRoutes from './routes/auth.routes.js';
+import categoryRoutes from './routes/category.routes.js'
+import budgetRoutes from './routes/budget.routes.js'
+import transactionRoutes from './routes/transaction.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
 
 const app: Application = express();
 

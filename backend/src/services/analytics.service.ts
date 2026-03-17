@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Transaction } from '../models/Transaction';
+import { Transaction } from '../models/Transaction.js';
 
 export const generateDashboardAnalytics = async (userId: string) => {
   // 1. Determine Current Month Date Range

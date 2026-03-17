@@ -1,14 +1,14 @@
-import { Client, LocalAuth } from 'whatsapp-web.js';
-import qrcode from 'qrcode-terminal';
+//import { Client, LocalAuth } from 'whatsapp-web.js';
+// import qrcode from 'qrcode-terminal';
 
 // Initialize the client.
 // LocalAuth saves your session so you don't have to scan the QR code every time you restart the server.
-export const whatsappClient = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox'], // Fixes common crashes on some systems
-    }
-});
+// export const whatsappClient = new Client({
+//     authStrategy: new LocalAuth(),
+//     puppeteer: {
+//         args: ['--no-sandbox', '--disable-setuid-sandbox'], // Fixes common crashes on some systems
+//     }
+// });
 
 export let isWhatsAppReady = false;
 

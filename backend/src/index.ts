@@ -1,8 +1,8 @@
-import app from "./app";
+import app from "./app.js";
 import dotenv from 'dotenv';
-import { connectDB } from "./config/db";
-import { seedPredefinedCategories } from "./utils/seedCategories";
-import { whatsappClient } from "./services/whatsapp.service";
+import { connectDB } from "./config/db.js";
+import { seedPredefinedCategories } from "./utils/seedCategories.js";
+//import { whatsappClient } from "./services/whatsapp.service.js";
 
 dotenv.config()
 

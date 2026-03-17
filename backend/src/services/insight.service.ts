@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Transaction } from '../models/Transaction';
+import { Transaction } from '../models/Transaction.js';
 
 export const detectOverspending = async (userId: string, currentCategorySpending: any[]) => {
   const now = new Date();

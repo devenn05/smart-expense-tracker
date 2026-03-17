@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import { Transaction } from "../models/Transaction";
-import { APIFeatures } from "../utils/apiFeatures";
-import { AppError } from "../utils/AppError";
-import { Category } from "../models/Category";
-import { checkAndTriggerBudgetAlert, checkAndTriggerAnomalyAlert } from "../services/alert.service";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { Transaction } from "../models/Transaction.js";
+import { APIFeatures } from "../utils/apiFeatures.js";
+import { AppError } from "../utils/AppError.js";
+import { Category } from "../models/Category.js";
+import { checkAndTriggerBudgetAlert, checkAndTriggerAnomalyAlert } from "../services/alert.service.js";
 
 // Add a new transaction
 export const createTransaction = asyncHandler(async(req: Request, res: Response)=>{

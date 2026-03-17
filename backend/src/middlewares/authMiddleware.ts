@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { AppError } from "../utils/AppError";
-import { asyncHandler } from "../utils/asyncHandler";
-import { User } from "../models/User";
+import { AppError } from "../utils/AppError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { User } from "../models/User.js";
 
 // Describes the data stored inside the token.
 interface jwtPayload{

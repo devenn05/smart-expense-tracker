@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import { Budget } from "../models/Budget";
-import { Category } from "../models/Category";
-import { AppError } from "../utils/AppError";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { Budget } from "../models/Budget.js";
+import { Category } from "../models/Category.js";
+import { AppError } from "../utils/AppError.js";
 
 // Set or update a monthly budget for a category (Upsert)
 export const upsertBudget = asyncHandler(async(req: Request, res: Response)=>{

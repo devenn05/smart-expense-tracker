@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { Budget } from "../models/Budget";
-import { Transaction } from "../models/Transaction";
-import { AlertHistory } from "../models/AlertHistory";
-import { User } from "../models/User";
-import { sendBudgetAlertEmail, sendBudgetAlertWhatsApp, sendAnomalyAlertEmail, sendAnomalyAlertWhatsApp } from "../utils/notifications";
+import { Budget } from "../models/Budget.js";
+import { Transaction } from "../models/Transaction.js";
+import { AlertHistory } from "../models/AlertHistory.js";
+import { User } from "../models/User.js";
+import { sendBudgetAlertEmail, sendBudgetAlertWhatsApp, sendAnomalyAlertEmail, sendAnomalyAlertWhatsApp } from "../utils/notifications.js";
 
 export const checkAndTriggerBudgetAlert = async (userId: string, categoryId: string) => {
     try {

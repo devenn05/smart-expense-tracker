@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import mongoose from 'mongoose'
-import { Category } from '../models/Category'
+import { Category } from '../models/Category.js'
 
 export const createCategorySchema = z.object({
     body: z.object({

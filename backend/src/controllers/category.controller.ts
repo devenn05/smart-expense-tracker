@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { Category } from "../models/Category";
-import { asyncHandler } from "../utils/asyncHandler";
-import { AppError } from "../utils/AppError";
-import { Transaction } from "../models/Transaction";
+import { Category } from "../models/Category.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { AppError } from "../utils/AppError.js";
+import { Transaction } from "../models/Transaction.js";
 
 // Get all applicable categories (Predefined + User's Custom)
 export const getCategories = asyncHandler(async (req: Request, res: Response)=>{

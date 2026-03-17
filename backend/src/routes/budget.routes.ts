@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { protect } from "../middlewares/authMiddleware";
-import { validate } from "../middlewares/validateRequest";
-import { upsertBudget, getBudget } from "../controllers/budget.controller";
-import { upsertBudgetSchema } from "../schemas/finance.schema";
+import { protect } from "../middlewares/authMiddleware.js";
+import { validate } from "../middlewares/validateRequest.js";
+import { upsertBudget, getBudget } from "../controllers/budget.controller.js";
+import { upsertBudgetSchema } from "../schemas/finance.schema.js";
 
 const router = Router();
 
