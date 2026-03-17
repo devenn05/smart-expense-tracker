@@ -2,6 +2,9 @@ import dotenv from "dotenv";
 dotenv.config();
 import nodemailer from 'nodemailer';
 import { whatsappClient, isWhatsAppReady } from '../services/whatsapp.service';
+import dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 const transporter = nodemailer.createTransport({
     // Using host and port directly is more reliable than service: 'gmail'
