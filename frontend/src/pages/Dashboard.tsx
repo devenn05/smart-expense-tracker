@@ -110,8 +110,8 @@ export const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                  <div className="bg-brand-50/50 rounded-xl p-5 border border-brand-100/60 flex items-center justify-between">
                      <div>
-                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Total Activities</p>
-                         <h4 className="text-2xl font-black text-brand-700">{totals.transactionCount} <span className="text-sm text-brand-600/60 font-medium tracking-normal">Logged Entries</span></h4>
+                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Transactions</p>
+                         <h4 className="text-2xl font-black text-brand-700">{totals.transactionCount} <span className="text-sm text-brand-600/60 font-medium tracking-normal">Total Transactions</span></h4>
                      </div>
                      <ReceiptText className="w-10 h-10 text-brand-300 opacity-60" />
                  </div>

@@ -4,15 +4,20 @@ import nodemailer from 'nodemailer';
 import { whatsappClient, isWhatsAppReady } from '../services/whatsapp.service';
 
 const transporter = nodemailer.createTransport({
-    // Using host and port directly is more reliable than service: 'gmail'
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, 
+    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    // secure must be false for 587. It automatically upgrades to secure STARTTLS!
+    secure: process.env.SMTP_PORT === '465', 
     auth: {
         user: process.env.SMTP_EMAIL,
         pass: process.env.SMTP_PASSWORD 
     }
 });
+
+// THIS WILL RUN WHEN SERVER STARTS AND TELL YOU IF BREVO BLOCKED YOU
+transporter.verify()
+    .then(() => console.log('✅ Nodemailer connected successfully to Brevo SMTP!'))
+    .catch((error) => console.error('❌ Brevo SMTP Setup Error:', error.message));
 
 // THIS WILL RUN WHEN SERVER STARTS AND TELL YOU IF GOOGLE BLOCKED YOU
 transporter.verify()
