@@ -37,7 +37,7 @@ export const Home = () => {
     {
       icon: <Target className="w-6 h-6 text-rose-500" />,
       title: 'Smart Budgets',
-      desc: 'Set granular spending limits by category and we will track them relentlessly so you never overspend.'
+      desc: 'Create custom spending limits for different categories or use our smart presets to start tracking immediately.'
     }
   ];
 
@@ -195,7 +195,7 @@ export const Home = () => {
                      </div>
                      <div className="pb-8 pt-1.5">
                        <h4 className="text-lg font-bold text-slate-900">Sign Up Securely</h4>
-                       <p className="text-sm text-slate-600 mt-1 leading-relaxed">Register a secure account and instantly get a OTP lock ensuring zero external compromises. Link WhatsApp conditionally.</p>
+                       <p className="text-sm text-slate-600 mt-1 leading-relaxed">Register your account and receive an instant OTP to keep your data safe. Optionally link your WhatsApp for real-time updates.</p>
                      </div>
                   </div>
                   <div className="flex gap-4">
@@ -205,7 +205,7 @@ export const Home = () => {
                      </div>
                      <div className="pb-8 pt-1.5">
                        <h4 className="text-lg font-bold text-slate-900">Set Rigid Targets</h4>
-                       <p className="text-sm text-slate-600 mt-1 leading-relaxed">Establish granular thresholds across custom spending structures or accept robust predefined base mappings tracking parameters strictly.</p>
+                       <p className="text-sm text-slate-600 mt-1 leading-relaxed">Create custom spending limits for different categories or use our smart presets to start tracking immediately.</p>
                      </div>
                   </div>
                   <div className="flex gap-4">
@@ -214,7 +214,7 @@ export const Home = () => {
                      </div>
                      <div className="pt-1.5">
                        <h4 className="text-lg font-bold text-slate-900">Let the Intelligence Run</h4>
-                       <p className="text-sm text-slate-600 mt-1 leading-relaxed">Any time a new financial map generates logging parameters, engine math flags deviations dynamically throwing 40% threshold WhatsApp texts actively defending parameters instantly.</p>
+                       <p className="text-sm text-slate-600 mt-1 leading-relaxed">Our engine tracks your spending in real-time. If you exceed 40% of your limit, we will instantly alert you via Email and WhatsApp to help you stay on track.</p>
                      </div>
                   </div>
 
