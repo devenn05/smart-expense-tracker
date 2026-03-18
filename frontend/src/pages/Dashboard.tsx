@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { type AppDispatch, type RootState } from '../store/store';
 import { fetchAnalytics } from '../store/slices/analyticsSlice';
-import { Link } from 'react-router-dom';
 import { 
   PieChart as RechartsPie, Pie, Cell, Tooltip, ResponsiveContainer, Legend, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid 

@@ -3,14 +3,12 @@ import { useSelector } from 'react-redux';
 import { type RootState } from '../store/store';
 import { 
   WalletCards, 
-  BarChart3, 
   MessageSquare, 
   Target, 
   ShieldCheck, 
   BellRing, 
   ArrowRight, 
-  Zap, 
-  Smartphone,
+  Zap,
   PieChart
 } from 'lucide-react';
 
