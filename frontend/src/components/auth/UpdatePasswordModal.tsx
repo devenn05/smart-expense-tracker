@@ -23,7 +23,7 @@ export const UpdatePasswordModal = ({ onClose }: { onClose: () => void }) => {
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Current Secret</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Current Password</label>
                 <div className="relative">
                     <KeyRound className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
                     <input type="password" {...register('currentPassword')} className="w-full pl-9 pr-3 py-2 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-brand-500" />
@@ -32,7 +32,7 @@ export const UpdatePasswordModal = ({ onClose }: { onClose: () => void }) => {
             </div>
 
             <div className="pt-2 border-t border-slate-100">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">New Lock Signature</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">New Password</label>
                 <div className="relative">
                     <Lock className="absolute left-3 top-2.5 w-4 h-4 text-brand-500" />
                     <input type="password" {...register('newPassword')} className="w-full pl-9 pr-3 py-2 bg-brand-50/50 border border-brand-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-brand-500" />
