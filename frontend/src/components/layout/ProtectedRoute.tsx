@@ -1,13 +1,26 @@
-import { useDispatch, useSelector } from "react-redux"
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 import { authService } from "../../services/authService";
 import { clearCredentials } from "../../store/slices/authSlice";
 import { Navigate, Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, WalletCards, ArrowRightLeft, LogOut } from "lucide-react";
+import { 
+    LayoutDashboard, 
+    WalletCards, 
+    ArrowRightLeft, 
+    LogOut, 
+    KeyRound 
+} from "lucide-react";
+
+// New Imports
+import { Modal } from "../common/Modal";
+import { UpdatePasswordModal } from "../auth/UpdatePasswordModal";
 
 export const ProtectedRoute = () => {
     const dispatch = useDispatch();
     const location = useLocation();
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    
     const { user, isAuth, isLoading } = useSelector((state: RootState) => state.auth);
 
     const handleLogout = async () => {
@@ -69,17 +82,27 @@ export const ProtectedRoute = () => {
                             </div>
                         </div>
                         
+                        {/* Right side Actions */}
                         <div className="flex items-center gap-4">
                             <span className="text-sm font-medium text-slate-500 hidden md:block">
                                 Hi, <span className="text-slate-900">{user?.name}</span>
                             </span>
-                            <button 
-                                onClick={handleLogout}
-                                className="inline-flex items-center gap-2 px-3 py-2 border border-slate-200 text-sm font-medium rounded-lg text-rose-600 bg-white hover:bg-rose-50 hover:border-rose-200 transition-all duration-200"
-                            >
-                                <LogOut className="w-4 h-4" />
-                                <span className="hidden sm:inline">Logout</span>
-                            </button>
+                            <div className="flex items-center gap-2 border-l border-slate-200 pl-4 ml-2">
+                                <button 
+                                    onClick={() => setIsSettingsOpen(true)} 
+                                    className="p-2 text-slate-400 hover:text-slate-900 bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200 shadow-sm" 
+                                    title="Security Tools"
+                                >
+                                    <KeyRound className="w-4 h-4" />
+                                </button>
+                                <button 
+                                    onClick={handleLogout} 
+                                    className="p-2 text-slate-400 hover:text-rose-600 bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-rose-200 hover:bg-rose-50 shadow-sm" 
+                                    title="Log Out"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -88,6 +111,15 @@ export const ProtectedRoute = () => {
             <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-300">
                 <Outlet />
             </main>
+
+            {/* Modals */}
+            <Modal 
+                isOpen={isSettingsOpen} 
+                onClose={() => setIsSettingsOpen(false)} 
+                title="Update Password"
+            >
+                 <UpdatePasswordModal onClose={() => setIsSettingsOpen(false)} />
+            </Modal>
         </div>
     );
 }

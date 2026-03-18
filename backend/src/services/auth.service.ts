@@ -5,7 +5,8 @@ import { AppError } from "../utils/AppError";
 import crypto from "crypto";
 import { RefreshToken } from "../models/RefreshToken";
 import { OtpRegistration } from "../models/OtpRegistration";
-import { sendVerificationEmail, sendVerificationWhatsApp } from "../utils/notifications";
+import { sendVerificationEmail, sendVerificationWhatsApp, sendPasswordResetEmail } from "../utils/notifications";
+import { OtpResetPassword } from "../models/OtpResetPassword";
 
 
 // Helper to generate the JWT Token
@@ -73,6 +74,41 @@ export const logoutUserService = async (incomingRefreshToken: string) => {
 
     const hashedToken = crypto.createHash('sha256').update(incomingRefreshToken).digest('hex');
     await RefreshToken.deleteOne({ token: hashedToken });
+}
+
+export const initiateForgotPasswordService = async (email: string) => {
+    const user = await User.findOne({ email });
+    if (!user) throw new AppError("If an account with this email exists, a reset code has been sent.", 200); // Disguise 404 securely
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store temporarily over-writing old unverified codes
+    await OtpResetPassword.findOneAndUpdate(
+        { email }, { email, otp }, { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    await sendPasswordResetEmail(email, user.name, otp);
+    return { success: true, message: "Reset code dispatched." };
+}
+
+export const verifyAndResetPasswordService = async (data: any) => {
+    const { email, otp, newPassword } = data;
+    
+    const validRequest = await OtpResetPassword.findOne({ email });
+    if (!validRequest || validRequest.otp !== otp) throw new AppError('Invalid or expired OTP code', 400);
+
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) throw new AppError('Critical mapping error. Contact support.', 404);
+
+    // Apply security hashing directly over the old state
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    
+    user.password = hashedPassword;
+    user.passwordChangedAt = new Date();
+    await user.save();
+
+    await validRequest.deleteOne(); // Wipe the used reset request permanently!
+    return { success: true, message: "Password re-secured successfully!" };
 }
 
 export const updateUserPasswordService = async (userId: string, data: any)=>{

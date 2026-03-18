@@ -13,6 +13,7 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { CategoriesBudgets } from './pages/CategoriesBudgets';
 import { Transactions } from './pages/Transactions';
 import { Home } from './pages/Home';
+import { ForgotPassword } from './pages/ForgotPassword';
 
 function App() {
   const dispatch = useDispatch();
@@ -50,6 +51,7 @@ function App() {
           <Route element={<AuthLayout/>}>
             <Route path='/login' element={<Login/>}></Route>
             <Route path='/register' element={<Register/>}></Route>
+             <Route path='/forgot-password' element={<ForgotPassword />}></Route>
           </Route>
 
           <Route element={<ProtectedRoute/>}>

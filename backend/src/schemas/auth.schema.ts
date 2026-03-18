@@ -37,6 +37,21 @@ export const loginSchema = z.object({
     })
 })
 
+export const forgotPasswordSchema = z.object({
+    body: z.object({ email: z.email('Invalid email address format') })
+});
+
+export const resetPasswordSchema = z.object({
+    body: z.object({
+        email: z.email('Invalid email format'),
+        otp: z.string().length(6, "OTP must be exactly 6 digits"),
+        newPassword: z.string().min(8, 'Password must be at least 8 characters long.')
+            .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+            .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+            .regex(/[0-9]/, "Password must contain at least one number")
+    })
+});
+
 export const updatePasswordSchema = z.object({
     body: z.object({
         currentPassword: z.string(),

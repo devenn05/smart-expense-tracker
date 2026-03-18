@@ -162,3 +162,27 @@ export const sendAnomalyAlertWhatsApp = async (phone: string, categoryName: stri
         console.error('❌ WhatsApp Anomaly Alert failed:', error.message);
     }
 };
+
+// --------------------------------------------Forgot Password---------------------------------------------------
+
+export const sendPasswordResetEmail = async (email: string, name: string, otp: string) => {
+    try {
+        const mailOptions = {
+            from: `"SmartExp Security" <${process.env.SMTP_EMAIL}>`,
+            to: email,
+            subject: 'SmartExp - Password Reset Request',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                    <h2 style="color: #0f172a;">Password Reset</h2>
+                    <p style="color: #475569; font-size: 16px;">Hi ${name},</p>
+                    <p style="color: #475569; font-size: 16px;">Someone (hopefully you) requested a password reset. Here is your verification code:</p>
+                    <div style="background-color: #f8fafc; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
+                        <span style="font-size: 32px; font-weight: bold; color: #8b5cf6; letter-spacing: 5px;">${otp}</span>
+                    </div>
+                    <p style="color: #64748b; font-size: 14px;">This code expires in 15 minutes. If you did not request this, securely ignore this email.</p>
+                </div>
+            `
+        };
+        await transporter.sendMail(mailOptions);
+    } catch (error) { console.error('Email failed:', error); }
+};
