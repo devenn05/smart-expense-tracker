@@ -12,6 +12,7 @@ import { AuthLayout } from './components/layout/AuthLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { CategoriesBudgets } from './pages/CategoriesBudgets';
 import { Transactions } from './pages/Transactions';
+import { Home } from './pages/Home';
 
 function App() {
   const dispatch = useDispatch();
@@ -43,6 +44,9 @@ function App() {
       />
       <BrowserRouter>
         <Routes>
+
+          <Route path="/" element={<Home />} />
+
           <Route element={<AuthLayout/>}>
             <Route path='/login' element={<Login/>}></Route>
             <Route path='/register' element={<Register/>}></Route>

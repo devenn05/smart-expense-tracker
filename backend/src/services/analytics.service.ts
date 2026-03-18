@@ -26,6 +26,7 @@ export const generateDashboardAnalytics = async (userId: string) => {
             $group: {
               _id: '$type', // Group by 'income' or 'expense'
               totalAmount: { $sum: '$amount' }, // Add them all up!
+              count: { $sum: 1 },
             },
           },
         ],
@@ -49,50 +50,58 @@ export const generateDashboardAnalytics = async (userId: string) => {
           },
           { $unwind: { path: "$categoryDetails", preserveNullAndEmptyArrays: true } }, // Flattens the resulting array into an object
         ],
+        incomeWise: [
+          { $match: { type: 'income' } }, 
+          { $group: { _id: '$category', totalEarned: { $sum: '$amount' } } },
+          { $lookup: { from: 'categories', localField: '_id', foreignField: '_id', as: 'categoryDetails' } },
+          { $unwind: { path: "$categoryDetails", preserveNullAndEmptyArrays: true } },
+        ],
+        // NEW: Fetch strictly the 5 largest transactions made this month!
+        topExpenses: [
+          { $match: { type: 'expense' } },
+          { $sort: { amount: -1 } }, // Sort descending by amount
+          { $limit: 5 }, // Only keep the top 5 biggest chunks!
+          { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryDetails' } },
+          { $unwind: { path: "$categoryDetails", preserveNullAndEmptyArrays: true } },
+        ]
       },
     },
   ]);
 
-  // 3. Format the Results
-  let totalIncome = 0;
-  let totalExpense = 0;
+  let totalIncome = 0; let totalExpense = 0; let transactionCount = 0;
 
   aggregatedData.totals.forEach((t: any) => {
     if (t._id === 'income') totalIncome = t.totalAmount;
     if (t._id === 'expense') totalExpense = t.totalAmount;
+    transactionCount += (t.count || 0);
   });
 
   const categoryBreakdown = aggregatedData.categoryWise.map((c: any) => ({
-    categoryId: c._id,
-    category: c.categoryDetails?.name || 'Uncategorized / Deleted',
-    color: c.categoryDetails?.color || '#9ca3af',
-    totalSpent: c.totalSpent,
+    categoryId: c._id, category: c.categoryDetails?.name || 'Uncategorized', color: c.categoryDetails?.color || '#9ca3af', totalSpent: c.totalSpent,
   }));
 
-  // 4. Implemented Monthly Expense Prediction Logic
-  // Formula: (Current Spending / Days Passed in Month) * Total Days in Month
-  const daysPassed = now.getDate() || 1; // || 1 prevents dividing by zero on the 1st of the month
-  const totalDays = endOfMonth.getDate();
-  
-  let predictedMonthlyExpense = 0;
-  if (daysPassed > 0) {
-    predictedMonthlyExpense = (totalExpense / daysPassed) * totalDays;
+  let highestIncome = { category: 'No Income', totalEarned: 0, color: '#9ca3af' };
+  if(aggregatedData.incomeWise.length > 0){
+    const sorted = aggregatedData.incomeWise.sort((a: any,b: any)=> b.totalEarned - a.totalEarned);
+    highestIncome = {
+       category: sorted[0].categoryDetails?.name || 'Uncategorized', totalEarned: sorted[0].totalEarned, color: sorted[0].categoryDetails?.color || '#10b981'
+    };
   }
 
-  // 5. Send back the calculated package to React
+  const topRecentExpenses = aggregatedData.topExpenses.map((t: any) => ({
+      _id: t._id, amount: t.amount, description: t.description || 'No description logged', date: t.date, category: t.categoryDetails?.name || 'Unknown', color: t.categoryDetails?.color || '#f43f5e'
+  }));
+
+  const daysPassed = now.getDate() || 1; 
+  const totalDays = endOfMonth.getDate();
+  const predictedMonthlyExpense = daysPassed > 0 ? (totalExpense / daysPassed) * totalDays : 0;
+
   return {
-    currentMonth: {
-      start: startOfMonth,
-      end: endOfMonth,
-    },
-    totals: {
-      totalIncome,
-      totalExpense,
-      balance: totalIncome - totalExpense,
-    },
+    currentMonth: { start: startOfMonth, end: endOfMonth },
+    totals: { totalIncome, totalExpense, balance: totalIncome - totalExpense, transactionCount },
     categoryBreakdown,
-    predictions: {
-      predictedMonthlyExpense,
-    },
+    highestIncome,
+    topRecentExpenses,
+    predictions: { predictedMonthlyExpense },
   };
 };

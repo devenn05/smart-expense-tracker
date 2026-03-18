@@ -25,5 +25,9 @@ export const financeServce = {
     upsertBudget: async(budgetData: {category: string; amount: number })=>{
         const response = await api.post('/budget', budgetData);
         return response.data;
+    },
+    deleteBudget: async(id: string) =>{
+        const response = await api.delete(`/budget/${id}`)
+        return response.data
     }
 }

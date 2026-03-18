@@ -1,27 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { type AppDispatch, type RootState } from '../store/store';
-import { fetchCategories, fetchBudget, deleteCategory, type Category, type Budget } from '../store/slices/financeSlice';
-import { fetchAnalytics } from '../store/slices/analyticsSlice'; // Fetch analytics to calculate spent vs limit!
+import { fetchCategories, fetchBudget, deleteCategory, deleteBudget,  type Category, type Budget } from '../store/slices/financeSlice';
+import { fetchAnalytics } from '../store/slices/analyticsSlice';
 import { Modal } from '../components/common/Modal';
 import { AddCategoryModal } from '../components/finance/AddCategoryModal';
 import { SetBudgetModal } from '../components/finance/SetBudgetModal';
-import toast from 'react-hot-toast'; // Integrated the beautiful toast popup
-import {
-  Plus,
-  Tags,
-  Target,
-  Lock,
-  LayoutGrid,
-  Pen,
-  Trash2,
-} from 'lucide-react';
+import toast from 'react-hot-toast'; 
+import { Plus, Tags, Target, Lock, LayoutGrid, Pen, Trash2 } from 'lucide-react';
 
 export const CategoriesBudgets = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { categories, budgets} = useSelector((state: RootState) => state.finance);
-  
-  // Bring in the analytics data so we know exactly how much they spent this month!
   const { data: analyticsData } = useSelector((state: RootState) => state.analytics);
 
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -30,35 +20,60 @@ export const CategoriesBudgets = () => {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
 
-  // Initialize both databases on page load
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(fetchBudget());
-    dispatch(fetchAnalytics()); // Grab current spending so we can draw progress bars
+    dispatch(fetchAnalytics());
   }, [dispatch]);
 
-const handleDeleteCategory = (id: string) => {
-  toast((t) => (
-    <div className="flex flex-col gap-2">
-      <p className="font-semibold text-sm">Delete this category?</p>
-      <div className="flex gap-2">
-        <button
-          onClick={async () => {
-            toast.dismiss(t.id);
-            await dispatch(deleteCategory(id));
-            toast.success("Deleted!");
-          }}
-          className="bg-green-500 text-white px-3 py-1 rounded text-xs"
-        >
-          Confirm
-        </button>
-        <button onClick={() => toast.dismiss(t.id)} className="bg-red-500 text-white px-3 py-1 rounded text-xs">
-          Cancel
-        </button>
+  const handleDeleteCategory = (id: string) => {
+    toast((t) => (
+      <div className="flex flex-col gap-2">
+        <p className="font-semibold text-sm text-slate-900">Delete this category?</p>
+        <p className="text-xs text-slate-500 pb-2">All transactions mapped MUST be reassigned.</p>
+        <div className="flex gap-2">
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await dispatch(deleteCategory(id)).unwrap();
+                toast.success("Category deleted safely!");
+              } catch (err: any) {
+                toast.error(err, { duration: 6000 }); 
+              }
+            }}
+            className="bg-brand-600 text-white font-semibold hover:bg-brand-700 px-3 py-1.5 rounded text-xs transition-colors shadow-sm"
+          >
+            Confirm Action
+          </button>
+          <button onClick={() => toast.dismiss(t.id)} className="bg-slate-200 text-slate-800 font-medium hover:bg-slate-300 px-3 py-1.5 rounded text-xs transition-colors">
+            Cancel
+          </button>
+        </div>
       </div>
-    </div>
-  ), { duration: 5000 });
-};
+    ), { duration: 8000 });
+  };
+
+  const handleDeleteBudget = (id: string) => {
+      toast((t) => (
+          <div className="flex flex-col gap-2">
+              <p className="font-semibold text-sm text-rose-800">Stop tracking this limit?</p>
+              <div className="flex gap-2 pt-1">
+                  <button onClick={async () => { 
+                      toast.dismiss(t.id); 
+                      try{ 
+                          await dispatch(deleteBudget(id)).unwrap(); 
+                          toast.success('Tracking parameter wiped successfully.'); 
+                      } catch(e:any){ 
+                          toast.error(e); 
+                      } 
+                  }} className="bg-rose-500 hover:bg-rose-600 text-white shadow-sm font-semibold px-3 py-1 rounded text-xs">Remove Tracker</button>
+                  <button onClick={() => toast.dismiss(t.id)} className="bg-slate-200 text-slate-800 font-semibold px-3 py-1 rounded text-xs hover:bg-slate-300">Keep Limit</button>
+              </div>
+          </div>
+      ), { duration: 6000 });
+  }
+
 
   const incomeCats = (categories || []).filter((c) => c.type === 'income');
   const expenseCats = (categories || []).filter((c) => c.type === 'expense');
@@ -152,25 +167,19 @@ const handleDeleteCategory = (id: string) => {
             ) : (
               <ul className="space-y-4">
                 {budgets.map((b) => {
-                  
-                  // -- MATHEMATICS & TRACKING ENGINE --
-                  // Link backend analytics total vs frontend budget limit securely 
                   const spentObj = analyticsData?.categoryBreakdown?.find(c => c.categoryId === b.category?._id);
                   const spentAmount = spentObj ? spentObj.totalSpent : 0;
                   const remaining = b.amount - spentAmount;
                   
-                  // Percent clamp keeps the visual bar constrained to exactly 100% physically if blown
                   const percent = Math.min((spentAmount / b.amount) * 100, 100);
                   
-                  // Dynamic Intelligent Status Traffic Lighting Rules:
                   let barColor = 'bg-emerald-500'; 
-                  if (percent >= 90) barColor = 'bg-rose-500';    // Critical / Danger level Limit Exceeded
-                  else if (percent >= 70) barColor = 'bg-amber-400'; // Warning Level Monitor Quickly
+                  if (percent >= 90) barColor = 'bg-rose-500';    
+                  else if (percent >= 70) barColor = 'bg-amber-400'; 
                   
                   return (
                     <li key={b._id} className="group p-4 rounded-xl border border-slate-100 bg-slate-50/80 hover:bg-white hover:border-slate-300 hover:shadow-sm transition-all flex flex-col gap-3">
                       
-                      {/* Sub-Header Container Matrix Component UI Limits View Details Area Elements Header Box Mapping Structure Base UI Block Component Layout Grid Visuals Graphic Values Display Model Formatting Engine Element Rendering Layout CSS Element Mapping*/}
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-slate-800 text-sm">
                           {b.category?.name || 'Unknown Category'}
@@ -180,18 +189,27 @@ const handleDeleteCategory = (id: string) => {
                             <span className="text-sm font-bold text-slate-700 bg-slate-200/60 px-2 py-0.5 rounded border border-slate-200">
                               Limit: ₹{b.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
-                            <button
-                              onClick={() => { setSelectedBudget(b); setIsBudgetModalOpen(true); }}
-                              className="text-slate-400 hover:text-brand-500 hover:bg-brand-50 rounded-lg opacity-0 group-hover:opacity-100 p-1.5 transition-all outline-none"
-                              title="Modify Limit Amounts Tracker Graph Settings Database Sync Form Details Mapping Data Frame Component Component Modals Format Forms Settings Value Variables Config Edit Values Engine Module Elements Input Controller Graph Forms Values Display Logic Values Map Output Layout Frame Elements Layout Styles Chart Components Styles Rendering Rendering Model  Settings "
-                            >
-                              {/* (AI hallucination cleanup: Please excuse any rogue backend model notes bleeding into the comments.) */}
-                              <Pen className="w-4 h-4" />
-                            </button>
+                            
+                            {/* BUG FIX: Both action buttons safely grouped in one fading capsule layout block so they show/hide together */}
+                            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
+                              <button
+                                onClick={() => { setSelectedBudget(b); setIsBudgetModalOpen(true); }}
+                                className="text-slate-400 hover:bg-brand-50 hover:text-brand-600 p-1.5 transition-colors outline-none border-r border-slate-100"
+                                title="Edit Limit"
+                              >
+                                <Pen className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                  onClick={() => handleDeleteBudget(b._id)}
+                                  className="text-slate-400 hover:bg-rose-50 hover:text-rose-600 p-1.5 transition-colors outline-none"
+                                  title="Erase Limit Guard"
+                              >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                         </div>
                       </div>
                       
-                      {/* Active Physical Usage Indicator Layout Tracking Display Box Output Line Fill UI Bar Module Design Template Render Form Element Output Box Value Track Indicator Render UI Render Model Logic Map Engine Values Frame Display Structure Styles Rendering Rendering Styles Frame Element  Layout Data Graphic Variables Values Graph Form Mapping Output Format Forms Mapping Node Variables Layout Variables Frame Map Form Elements Frame Variables Layout Variables Elements Mapping Variables Graphic Layout Map Frame Model Layout Forms Framework Output Module Map Element Layout Chart Display CSS Value Format UI Component */}
                       <div className="w-full bg-slate-200/60 rounded-full h-2.5 overflow-hidden">
                         <div 
                           className={`h-2.5 rounded-full transition-all duration-700 ${barColor}`} 
@@ -199,7 +217,6 @@ const handleDeleteCategory = (id: string) => {
                         />
                       </div>
 
-                      {/* Descriptive Financial Math UI Footer Tracker Component Grid Elements Block Output Form Format Block Rendering Variables Display Matrix Mapping Structure Array Module UI Formatting Model Container Styles Logic Form Model Format Block Values Visual Components Graph Module Graphic Rendering Container Element Engine Container Logic Matrix CSS Container Render Render Matrix Logic Container Structure Display Mapping Structure Value Map Logic Styles Logic Format Map Logic Node Value Form Formatting Form Block Logic Matrix Node Data Element Data Framework Map Display Block Structure Block Values Block Logic  */}
                       <div className="flex justify-between text-xs font-semibold">
                         <span className="text-slate-500">
                           Spent: <span className="text-slate-700">₹{spentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
@@ -211,7 +228,7 @@ const handleDeleteCategory = (id: string) => {
                             </span>
                         ) : (
                             <span className={`${percent >= 90 ? 'text-rose-500' : 'text-slate-500'}`}>
-                                Left: <span className={`${percent >= 90 ? 'text-rose-600 font-bold' : 'text-slate-700'}`}>${remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                Left: <span className={`${percent >= 90 ? 'text-rose-600 font-bold' : 'text-slate-700'}`}>₹{remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </span>
                         )}
                       </div>
@@ -224,12 +241,11 @@ const handleDeleteCategory = (id: string) => {
         </section>
       </div>
       
-      {/* Portals Engine Models Tracker State Framework Component Views Displays Mapping Engine Rendering Node */}
-      <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title={selectedCategory ? 'Modify Existing Rule' : 'Design Custom Metric'}>
+      <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title={selectedCategory ? 'Modify Existing Category' : 'Add Custom Category'}>
         <AddCategoryModal onClose={() => setIsCategoryModalOpen(false)} initialData={selectedCategory} />
       </Modal>
 
-      <Modal isOpen={isBudgetModalOpen} onClose={() => setIsBudgetModalOpen(false)} title={selectedBudget ? 'Adjust Tracker Threshold' : 'Activate Boundary Defense'}>
+      <Modal isOpen={isBudgetModalOpen} onClose={() => setIsBudgetModalOpen(false)} title={selectedBudget ? 'Edit Budget' : 'Add Budget'}>
         <SetBudgetModal onClose={() => setIsBudgetModalOpen(false)} initialData={selectedBudget} />
       </Modal>
 

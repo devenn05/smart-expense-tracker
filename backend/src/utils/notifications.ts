@@ -2,27 +2,22 @@ import dotenv from "dotenv";
 dotenv.config();
 import nodemailer from 'nodemailer';
 import { whatsappClient, isWhatsAppReady } from '../services/whatsapp.service';
-import dns from 'dns';
-
-dns.setDefaultResultOrder('ipv4first');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // This forces Nodemailer to use optimized Google routes automatically
+    // Using host and port directly is more reliable than service: 'gmail'
     host: 'smtp.gmail.com',
     port: 465,
     secure: true, 
     auth: {
         user: process.env.SMTP_EMAIL,
         pass: process.env.SMTP_PASSWORD 
-    },
-    // Force Nodemailer to stick to IPv4 ONLY, skipping the broken IPv6 lookup on Render
-    tls: { rejectUnauthorized: false }
+    }
 });
 
-// Ensure you wrap the startup ping in a fast timeout so it doesn't hang the deployment
+// THIS WILL RUN WHEN SERVER STARTS AND TELL YOU IF GOOGLE BLOCKED YOU
 transporter.verify()
     .then(() => console.log('✅ Nodemailer Gmail SMTP connection verified!'))
-    .catch((error) => console.log('⚠️ Nodemailer Ping failed, check your Google App Passwords! Error:', error.message));
+    .catch((error) => console.error('❌ Nodemailer Setup Error:', error.message));
 
 
 const formatWhatsAppNumber = (phone: string) => {

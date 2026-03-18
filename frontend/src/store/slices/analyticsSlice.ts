@@ -2,8 +2,10 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { analyticsService } from "../../services/analyticsService";
 
 export interface AnalyticsData {
-  totals: { totalIncome: number; totalExpense: number; balance: number };
+  totals: { totalIncome: number; totalExpense: number; balance: number; transactionCount: number };
   categoryBreakdown: Array<{ categoryId: string; category: string; color: string; totalSpent: number }>;
+  highestIncome: { category: string; totalEarned: number; color: string };
+  topRecentExpenses: Array<{ _id: string; amount: number; description: string; date: string; category: string; color: string }>;
   predictions: { predictedMonthlyExpense: number };
   overspending: { 
     status: 'insufficient_data' | 'active'; 

@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { Budget } from "../models/Budget";
 import { Category } from "../models/Category";
 import { AppError } from "../utils/AppError";
+import { AlertHistory } from "../models/AlertHistory";
 
 // Set or update a monthly budget for a category (Upsert)
 export const upsertBudget = asyncHandler(async(req: Request, res: Response)=>{
@@ -37,6 +38,16 @@ export const upsertBudget = asyncHandler(async(req: Request, res: Response)=>{
         }
     )
     budget = await budget.populate('category', 'name color isPredefined type')
+
+    const now = new Date();
+    const monthYearString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+    await AlertHistory.findOneAndDelete({
+        user: req.user?._id,
+        category: category,
+        alertType: 'BUDGET_EXCEEDED',
+        monthYear: monthYearString
+    });
+    res.status(200).json({ success: true, data: budget });
     res.status(200).json({ success: true, data: budget });
 })
 
@@ -46,3 +57,11 @@ export const getBudget = asyncHandler(async(req: Request, res: Response)=>{
 
     res.status(200).json({ success: true, data: budget });
 })
+
+export const deleteBudget = asyncHandler(async(req: Request, res: Response)=>{
+    const budget = await Budget.findOne({ _id: req.params.id, user: req.user?._id });
+    if (!budget) throw new AppError('Budget mapping not found', 404);
+
+    await budget.deleteOne();
+    res.status(200).json({ success: true, message: 'Budget tracking boundary successfully removed' });
+});

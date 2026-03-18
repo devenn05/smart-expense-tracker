@@ -80,6 +80,14 @@ export const setBudget = createAsyncThunk('finance/setBudget', async(data: {cate
     }
 })
 
+export const deleteBudget = createAsyncThunk('finance/deleteBudget', async(id: string, thunkAPI)=>{
+    try{
+        await financeServce.deleteBudget(id); return id;
+    }catch(error: any){
+        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to delete Budget');
+    }
+})
+
 const financeSlice = createSlice({
     name: 'finance',
     initialState,
@@ -135,6 +143,11 @@ const financeSlice = createSlice({
                 // Appends mapped values directly to objects!
                 state.budgets.push(action.payload);
             }
+        })
+
+        // Handles deletion of budgets
+        builder.addCase(deleteBudget.fulfilled, (state, action)=>{
+            state.budgets = state.budgets.filter((b: any) => b._id !== action.payload);
         })
     }
 })
