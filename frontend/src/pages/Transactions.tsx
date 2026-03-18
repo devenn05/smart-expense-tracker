@@ -321,7 +321,7 @@ const handleDelete = (id: string) => {
         </div>
 
       {/* Background Dimming Portal Controls Logic Tracking Editing Modal Map State Changes Components*/}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTransaction ? "Modify Historical Record" : "Log Database Activity"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTransaction ? "Modify Transaction" : "Add Transaction"}>
         <AddTransactionModal onClose={() => setIsModalOpen(false)} initialData={editingTransaction} />
       </Modal>
 
