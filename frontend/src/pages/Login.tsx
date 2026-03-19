@@ -10,17 +10,23 @@ import { Mail, Lock, Loader2, ArrowRight } from "lucide-react";
 export const Login = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const {register, handleSubmit, formState:{errors, isSubmitting }, setError} = useForm<LoginForm>({resolver: zodResolver(loginSchema)})
 
-    const onSubmit = async (data: LoginForm)=>{
+    // Init form with Zod schema validation
+    const { register, handleSubmit, formState: { errors, isSubmitting }, setError } = useForm<LoginForm>({
+        resolver: zodResolver(loginSchema)
+    });
+
+    const onSubmit = async (data: LoginForm) => {
         try {
-            const response = await authService.login(data)
-            dispatch(setCredentials(response.user))
-            navigate('/dashboard')
+            // Hand off credentials to auth service and sync session to store
+            const response = await authService.login(data);
+            dispatch(setCredentials(response.user));
+            navigate('/dashboard');
         } catch (error: any) {
+            // Map API errors or network failures back to the form's root state
             setError('root', {
                 message: error.response?.data?.message || 'Login failed',
-            })
+            });
         }
     }
     
@@ -32,6 +38,7 @@ export const Login = () => {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                {/* Global form-level error feedback */}
                 {errors.root && (
                     <div className="bg-rose-50 border border-rose-200 text-rose-600 text-sm px-4 py-3 rounded-lg flex items-start gap-2">
                         <span className="font-semibold block sm:inline">{errors.root.message}</span>
@@ -68,7 +75,9 @@ export const Login = () => {
                         />
                     </div>
                     {errors.password && <p className="mt-1.5 text-xs text-rose-500">{errors.password.message}</p>}
- <div className="text-right mt-1.5"><Link to="/forgot-password" className="text-xs font-semibold text-brand-600 hover:text-brand-800">Forgot Password?</Link></div>
+                    <div className="text-right mt-1.5">
+                        <Link to="/forgot-password" className="text-xs font-semibold text-brand-600 hover:text-brand-800">Forgot Password?</Link>
+                    </div>
                 </div>
 
                 <button 
@@ -89,7 +98,7 @@ export const Login = () => {
                 <p className="text-sm text-slate-600 flex justify-center gap-1 items-center">
                     Don't have an account? 
                     <Link to="/register" className="font-semibold text-brand-600 hover:text-brand-500 flex items-center group transition-colors">
-                        Create one <ArrowRight className="w-4 h-4 ml-1 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-1 transition-all" />
+                        Create one <ArrowRight className="w-4 h-4 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-1 transition-all" />
                     </Link>
                 </p>
             </div>

@@ -5,11 +5,14 @@ import { AppError } from "../utils/AppError";
 import crypto from "crypto";
 import { RefreshToken } from "../models/RefreshToken";
 import { OtpRegistration } from "../models/OtpRegistration";
-import { sendVerificationEmail, sendVerificationWhatsApp, sendPasswordResetEmail } from "../utils/notifications";
+import {
+    sendVerificationEmail,
+    sendVerificationWhatsApp,
+    sendPasswordResetEmail
+} from "../utils/notifications";
 import { OtpResetPassword } from "../models/OtpResetPassword";
 
-
-// Helper to generate the JWT Token
+// generate short-lived access token
 const signAccessToken = (id: string) => {
   return jwt.sign(
     { id },
@@ -20,9 +23,10 @@ const signAccessToken = (id: string) => {
   );
 };
 
-// Helper Generate, store, and return the long-lived Refresh Token
+// create and store refresh token in db
 const generateAndStoreRefreshToken = async (userId: string) => {
     const rawRefreshToken = crypto.randomBytes(40).toString('hex');
+
     const refreshExpiresDays = parseInt(process.env.JWT_COOKIE_EXPIRES_IN || '7', 10);
     const expiresAt = new Date(Date.now() + refreshExpiresDays * 24 * 60 * 60 * 1000);
 
@@ -31,95 +35,123 @@ const generateAndStoreRefreshToken = async (userId: string) => {
         token: rawRefreshToken,
         expiresAt,
     });
+
     await refreshTokenDoc.save();
 
     return rawRefreshToken;
 };
 
-export const loginUserService = async (userData: any)=> {
-    const {email, password} = userData;
+// login user
+export const loginUserService = async (userData: any) => {
+    const { email, password } = userData;
+
     const user = await User.findOne({ email }).select('+password');
-    if (!user){ throw new AppError('Invalid email or password', 401); }
+    if (!user) throw new AppError('Invalid email or password', 401);
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch){ throw new AppError('Invalid email or password', 401); }
-    
+    if (!isMatch) throw new AppError('Invalid email or password', 401);
+
     const accessToken = signAccessToken(user._id.toString());
     const refreshToken = await generateAndStoreRefreshToken(user._id.toString());
-    
-    return {user, accessToken, refreshToken}
-}
 
-// Service to handle Refreshing Tokens
+    return { user, accessToken, refreshToken };
+};
+
+// issue new access token using refresh token
 export const refreshAccessTokenService = async (incomingRefreshToken: string) => {
     if (!incomingRefreshToken) {
         throw new AppError('Refresh token not found', 403);
     }
-    const hashedToken = crypto.createHash('sha256').update(incomingRefreshToken).digest('hex');
+
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(incomingRefreshToken)
+        .digest('hex');
 
     const tokenDoc = await RefreshToken.findOne({ token: hashedToken });
-    
+
     if (!tokenDoc || tokenDoc.expiresAt < new Date()) {
-        if(tokenDoc) await tokenDoc.deleteOne();
+        if (tokenDoc) await tokenDoc.deleteOne();
         throw new AppError('Invalid or expired refresh token. Please log in again.', 403);
     }
 
     const newAccessToken = signAccessToken(tokenDoc.user.toString());
-    return { accessToken: newAccessToken };
-}
 
-// Service to handle Logout
+    return { accessToken: newAccessToken };
+};
+
+// logout user (remove refresh token)
 export const logoutUserService = async (incomingRefreshToken: string) => {
     if (!incomingRefreshToken) return;
 
-    const hashedToken = crypto.createHash('sha256').update(incomingRefreshToken).digest('hex');
-    await RefreshToken.deleteOne({ token: hashedToken });
-}
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(incomingRefreshToken)
+        .digest('hex');
 
+    await RefreshToken.deleteOne({ token: hashedToken });
+};
+
+// send reset password OTP
 export const initiateForgotPasswordService = async (email: string) => {
     const user = await User.findOne({ email });
-    if (!user) throw new AppError("If an account with this email exists, a reset code has been sent.", 200); // Disguise 404 securely
+
+    // don't expose whether user exists or not
+    if (!user) {
+        throw new AppError("If an account with this email exists, a reset code has been sent.", 200);
+    }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Store temporarily over-writing old unverified codes
-    await OtpResetPassword.findOneAndUpdate(
-        { email }, { email, otp }, { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-    await sendPasswordResetEmail(email, user.name, otp);
-    return { success: true, message: "Reset code dispatched." };
-}
 
+    // store or update otp
+    await OtpResetPassword.findOneAndUpdate(
+        { email },
+        { email, otp },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    await sendPasswordResetEmail(email, user.name, otp);
+
+    return { success: true, message: "Reset code dispatched." };
+};
+
+// verify otp and update password
 export const verifyAndResetPasswordService = async (data: any) => {
     const { email, otp, newPassword } = data;
-    
+
     const validRequest = await OtpResetPassword.findOne({ email });
-    if (!validRequest || validRequest.otp !== otp) throw new AppError('Invalid or expired OTP code', 400);
+
+    if (!validRequest || validRequest.otp !== otp) {
+        throw new AppError('Invalid or expired OTP code', 400);
+    }
 
     const user = await User.findOne({ email }).select('+password');
     if (!user) throw new AppError('Critical mapping error. Contact support.', 404);
 
-    // Apply security hashing directly over the old state
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-    
+
     user.password = hashedPassword;
     user.passwordChangedAt = new Date();
+
     await user.save();
 
-    await validRequest.deleteOne(); // Wipe the used reset request permanently!
+    // delete used otp
+    await validRequest.deleteOne();
+
     return { success: true, message: "Password re-secured successfully!" };
-}
+};
 
-export const updateUserPasswordService = async (userId: string, data: any)=>{
-    const currentUser = await User.findById(userId).select('+password')
+// update password for logged in user
+export const updateUserPasswordService = async (userId: string, data: any) => {
+    const currentUser = await User.findById(userId).select('+password');
 
-    if (!currentUser){
+    if (!currentUser) {
         throw new AppError("User doesn't exist", 404);
     }
 
     const isMatch = await bcrypt.compare(data.currentPassword, currentUser.password);
-    if (!isMatch){
+    if (!isMatch) {
         throw new AppError('Incorrect Password', 401);
     }
 
@@ -128,23 +160,29 @@ export const updateUserPasswordService = async (userId: string, data: any)=>{
 
     currentUser.password = hashedPassword;
     currentUser.passwordChangedAt = new Date();
-    await currentUser.save()
 
-    const token = signAccessToken(userId)
-    return {user: currentUser, token}
-}
+    await currentUser.save();
 
-// Helper to generate a 6 digit code
-const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+    const token = signAccessToken(userId);
 
+    return { user: currentUser, token };
+};
+
+// generate 6 digit otp
+const generateOTP = () =>
+    Math.floor(100000 + Math.random() * 900000).toString();
+
+// start registration process
 export const initiateRegistrationService = async (userData: any) => {
     const { name, email, password, phoneNumber } = userData;
-    
-    // 1. Ensure email isn't already fully registered
-    const existingUser = await User.findOne({ email });
-    if (existingUser) throw new AppError('Email is already in use, please Login.', 400);
 
-    // Ensure phone number isn't already linked to another account
+    // check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+        throw new AppError('Email is already in use, please Login.', 400);
+    }
+
+    // check if phone number already used
     if (phoneNumber) {
         const existingPhone = await User.findOne({ phoneNumber });
         if (existingPhone) {
@@ -152,46 +190,54 @@ export const initiateRegistrationService = async (userData: any) => {
         }
     }
 
-    // 2. Hash password & Generate OTPs
+    // hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    
-    const emailOtp = generateOTP();
-    const whatsappOtp = undefined; 
 
-    // 3. Save to Temporary Storage
+    const emailOtp = generateOTP();
+    const whatsappOtp = undefined;
+
+    // store temporary user data
     await OtpRegistration.findOneAndUpdate(
         { email },
-        { name, email, passwordHash: hashedPassword, phoneNumber, emailOtp, whatsappOtp },
+        {
+            name,
+            email,
+            passwordHash: hashedPassword,
+            phoneNumber,
+            emailOtp,
+            whatsappOtp
+        },
         { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // 4. Fire Notifications
+    // send verification email
     await sendVerificationEmail(email, name, emailOtp);
+
     if (phoneNumber && whatsappOtp) {
         await sendVerificationWhatsApp(phoneNumber, whatsappOtp);
     }
 
-    return { message: "Verification codes sent.", requiresWhatsAppOtp: false };
+    return {
+        message: "Verification codes sent.",
+        requiresWhatsAppOtp: false
+    };
 };
 
-
+// verify otp and create actual user
 export const verifyOtpService = async (data: any) => {
     const { email, emailOtp, whatsappOtp } = data;
 
-    // 1. Find temporary record
     const tempRecord = await OtpRegistration.findOne({ email });
-    if (!tempRecord) throw new AppError('OTP expired or invalid. Please register again.', 400);
+    if (!tempRecord) {
+        throw new AppError('OTP expired or invalid. Please register again.', 400);
+    }
 
-    // 2. Validate OTPs
     if (tempRecord.emailOtp !== emailOtp) {
         throw new AppError('Invalid Email OTP', 400);
     }
-    // if (tempRecord.phoneNumber && tempRecord.whatsappOtp !== whatsappOtp) {
-    //     throw new AppError('Invalid WhatsApp OTP', 400);
-    // }
 
-    // 3. Create the Real User
+    // create user
     const user = await User.create({
         name: tempRecord.name,
         email: tempRecord.email,
@@ -203,12 +249,12 @@ export const verifyOtpService = async (data: any) => {
         }
     });
 
-    // 4. Delete the temp record so it can't be used again
+    // remove temp data
     await tempRecord.deleteOne();
 
-    // 5. Generate Login Tokens
+    // generate tokens
     const accessToken = signAccessToken(user._id.toString());
     const refreshToken = await generateAndStoreRefreshToken(user._id.toString());
-    
+
     return { user, accessToken, refreshToken };
 };

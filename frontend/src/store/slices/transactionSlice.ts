@@ -25,6 +25,7 @@ interface TransactionState {
     error: string | null;
 }
 
+// Transaction store (list + pagination metadata)
 const initialState: TransactionState = {
     transactions: [],
     totalElements: 0,
@@ -33,63 +34,87 @@ const initialState: TransactionState = {
     error: null
 }
 
-// We allow passing filters like { type: 'expense', category: '...' } directly into the thunk
-export const fetchTransactions = createAsyncThunk('transactions/fetchAll', async(filters: any = {}, thunkAPI)=>{
-    try{
-        const res = await transactionService.getTransaction(filters);
-        return res;
-    } catch(error: any){
-        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to fetch Transactions.');
-    }
-})
-
-export const addTransaction = createAsyncThunk('transactions/addTransaction', async(data: any, thunkAPI)=>{
-    try {
-        const res = await transactionService.createTransaction(data);
-        return res.data;
-    } catch (error: any){
-        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to add a Transaction.');
-    }
-})
-
-export const editTransaction = createAsyncThunk('transaction/editTransaction', async(args: {id: string, data: any}, thunkAPI)=>{
-    try { 
-        const res = await transactionService.updateTransaction(args.id, args.data); return res.data; 
-    }catch (error: any) { 
-        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to edit Transaction.'); 
-    }
+// Fetch transactions with optional filters (pagination, type, category, etc.)
+export const fetchTransactions = createAsyncThunk(
+    'transactions/fetchAll',
+    async(filters: any = {}, thunkAPI)=>{
+        try{
+            const res = await transactionService.getTransaction(filters);
+            return res;
+        } catch(error: any){
+            return thunkAPI.rejectWithValue(
+                error?.response?.data?.message || 'Failed to fetch Transactions.'
+            );
+        }
 });
 
-export const deleteTransaction = createAsyncThunk('transaction/deleteTransaction', async(id: string, thunkAPI)=>{
-    try{
-        await transactionService.deleteTransaction(id);
-        return id;
-    } catch (error: any){
-        return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Failed to delete a Transaction.');
-    }
-})
+// Add transaction
+export const addTransaction = createAsyncThunk(
+    'transactions/addTransaction',
+    async(data: any, thunkAPI)=>{
+        try {
+            const res = await transactionService.createTransaction(data);
+            return res.data;
+        } catch (error: any){
+            return thunkAPI.rejectWithValue(
+                error?.response?.data?.message || 'Failed to add a Transaction.'
+            );
+        }
+});
+
+// Edit transaction
+export const editTransaction = createAsyncThunk(
+    'transaction/editTransaction',
+    async(args: {id: string, data: any}, thunkAPI)=>{
+        try { 
+            const res = await transactionService.updateTransaction(args.id, args.data);
+            return res.data; 
+        }catch (error: any) { 
+            return thunkAPI.rejectWithValue(
+                error?.response?.data?.message || 'Failed to edit Transaction.'
+            ); 
+        }
+});
+
+// Delete transaction
+export const deleteTransaction = createAsyncThunk(
+    'transaction/deleteTransaction',
+    async(id: string, thunkAPI)=>{
+        try{
+            await transactionService.deleteTransaction(id);
+            return id;
+        } catch (error: any){
+            return thunkAPI.rejectWithValue(
+                error?.response?.data?.message || 'Failed to delete a Transaction.'
+            );
+        }
+});
 
 const transactionSlice = createSlice({
     name: 'transactions',
     initialState,
     reducers: {},
     extraReducers: (builder)=>{
-        // Handling Fetch Transactions
-        builder.addCase(fetchTransactions.pending, (state)=> {state.isLoading =  true})
+        
+        // Fetch transactions
+        builder.addCase(fetchTransactions.pending, (state)=>{
+            state.isLoading = true;
+        });
+
         builder.addCase(fetchTransactions.fulfilled, (state, action)=>{
             state.transactions = action.payload.data || [];
             state.totalElements = action.payload.totalElements || 0;
             state.totalPages = action.payload.totalPages || 1;
             state.isLoading = false;
-        })
-        // Handling add Transaction
-        // Put the newest transaction at the top of the list in real-time
+        });
+
+        // Add transaction (prepend for real-time UX)
         builder.addCase(addTransaction.fulfilled, (state, action)=>{
             state.transactions.unshift(action.payload);
             state.isLoading = false;
-        })
+        });
 
-        // Edit Transaction
+        // Update transaction in-place
         builder.addCase(editTransaction.fulfilled, (state, action) => {
             const index = state.transactions.findIndex(t => t._id === action.payload._id);
             if (index >= 0) {
@@ -97,10 +122,10 @@ const transactionSlice = createSlice({
             }
         });
 
-        // Cleanly remove from memory via the ID
+        // Remove transaction by id
         builder.addCase(deleteTransaction.fulfilled, (state, action)=>{
-            state.transactions = state.transactions.filter(t=> t._id !== action.payload);
-        })
+            state.transactions = state.transactions.filter(t => t._id !== action.payload);
+        });
     }
 })
 

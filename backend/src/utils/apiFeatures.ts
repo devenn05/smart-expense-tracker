@@ -3,11 +3,18 @@ export class APIFeatures {
   queryString: any;
 
   constructor(query: any, queryString: any) {
+    // mongoose query (e.g. Model.find())
     this.query = query;
+
+    // req.query from URL
     this.queryString = queryString;
   }
+
   filter() {
+    // clone query params so we don’t mutate original
     const queryObj = { ...this.queryString };
+
+    // remove params that are not actual filters
     const excludedFields = [
       'page',
       'sort',
@@ -17,16 +24,17 @@ export class APIFeatures {
       'endDate',
       'search'
     ];
+
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    // Advanced filtering (gte, gt, lte, lt)
+    // convert operators like gte, lte into MongoDB format ($gte, $lte)
     let queryStr = JSON.stringify(queryObj);
-
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
     const parsedQuery = JSON.parse(queryStr);
 
-    // Apply filters
+    // apply filters to mongoose query
+    // example: amount[gte]=100 → { amount: { $gte: 100 } }
     this.query = this.query.find(parsedQuery);
 
     return this;
@@ -35,6 +43,7 @@ export class APIFeatures {
   dateFilter() {
     const { startDate, endDate } = this.queryString;
 
+    // apply date range filter if provided
     if (startDate || endDate) {
       const dateQuery: any = {};
 
@@ -46,6 +55,7 @@ export class APIFeatures {
         dateQuery.$lte = new Date(endDate);
       }
 
+      // filter based on date field
       this.query = this.query.find({
         date: dateQuery,
       });
@@ -53,16 +63,21 @@ export class APIFeatures {
 
     return this;
   }
+
   sort() {
     if (this.queryString.sort) {
       let sortBy = '';
+
+      // supports ?sort=amount,-date OR array format
       if (typeof this.queryString.sort === 'string') {
         sortBy = this.queryString.sort.split(",").join(" ");
       } else if (Array.isArray(this.queryString.sort)) {
         sortBy = this.queryString.sort.join(" ");
       }
+
       this.query = this.query.sort(sortBy);
     } else {
+      // default sorting (latest first)
       this.query = this.query.sort("-date");
     }
 
@@ -70,11 +85,14 @@ export class APIFeatures {
   }
 
   paginate() {
+    // page & limit from query params
     const page = Number(this.queryString.page) || 1;
     const limit = Number(this.queryString.limit) || 10;
 
+    // calculate how many docs to skip
     const skip = (page - 1) * limit;
 
+    // apply pagination to query
     this.query = this.query.skip(skip).limit(limit);
 
     return this;

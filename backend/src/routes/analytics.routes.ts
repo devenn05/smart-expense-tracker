@@ -4,8 +4,10 @@ import { getAnalytics } from "../controllers/analytics.controller";
 
 const router = Router();
 
+// all analytics routes require login
 router.use(protect);
 
-router.get('/', getAnalytics)
+// get dashboard analytics data
+router.get('/', getAnalytics);
 
 export default router;

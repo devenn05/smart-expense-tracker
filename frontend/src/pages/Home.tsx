@@ -15,9 +15,10 @@ import {
 import financialAnalysisImg from '../assets/Financial-Analysis.jpg';
 
 export const Home = () => {
-  // Check if user is currently logged in
+  // Toggle CTAs and nav visibility based on session status
   const { isAuth } = useSelector((state: RootState) => state.auth);
 
+  // Landing page feature grid configuration
   const features = [
     {
       icon: <PieChart className="w-6 h-6 text-brand-500" />,
@@ -44,7 +45,7 @@ export const Home = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-brand-200 selection:text-brand-900">
       
-      {/* ===== NAVIGATION BAR ===== */}
+      {/* Navigation Layer */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -77,11 +78,10 @@ export const Home = () => {
 
       <main className="flex-1 w-full overflow-hidden">
         
-        {/* ===== HERO SECTION ===== */}
+        {/* Hero Section: Messaging & Primary CTA */}
         <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 sm:pt-28 sm:pb-32 lg:pb-40 animate-in fade-in duration-700 slide-in-from-bottom-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
             
-            {/* Left Copy Text */}
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-100 text-brand-700 text-sm font-semibold mb-6">
                 <ShieldCheck className="w-4 h-4" /> Safe, Secure, Private
@@ -106,12 +106,12 @@ export const Home = () => {
               </div>
             </div>
 
-            {/* Right Abstract Visual Graphic */}
+            {/* Visual Mockup Grid */}
             <div className="relative mx-auto w-full max-w-lg lg:max-w-none h-[400px]">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-brand-300/30 blur-[80px] rounded-full z-0"></div>
               
               <div className="relative z-10 w-full bg-white rounded-2xl shadow-2xl border border-slate-200/60 p-6 flex flex-col gap-6 transform lg:-rotate-2 hover:rotate-0 transition-transform duration-700 ease-out">
-                {/* Header Mock */}
+                {/* Simulated UI components */}
                 <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                     <div>
                       <div className="w-20 h-4 bg-slate-200 rounded animate-pulse"></div>
@@ -121,13 +121,11 @@ export const Home = () => {
                         <WalletCards className="text-emerald-600 w-5 h-5" />
                     </div>
                 </div>
-                {/* Visual Chart Bars Mock */}
                 <div className="flex items-end gap-3 h-32 pt-2">
                     {[30, 70, 45, 90, 60, 100, 50].map((h, i) => (
                       <div key={i} className={`flex-1 rounded-t-sm ${h > 80 ? 'bg-rose-400' : 'bg-brand-400'}`} style={{height: `${h}%`}}></div>
                     ))}
                 </div>
-                {/* Limit Warning Mock */}
                 <div className="p-3 bg-rose-50 border border-rose-100 rounded-lg flex items-center gap-3 mt-2">
                     <BellRing className="text-rose-500 w-8 h-8 p-1.5 bg-rose-100 rounded" />
                     <div>
@@ -137,7 +135,6 @@ export const Home = () => {
                 </div>
               </div>
 
-              {/* Decorative floating sub-element */}
               <div className="absolute -bottom-8 -left-8 sm:-left-12 z-20 w-48 bg-white p-4 rounded-xl shadow-xl border border-slate-200/80 animate-bounce" style={{animationDuration: '5s'}}>
                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Savings Insight</p>
                  <div className="text-emerald-500 font-extrabold text-2xl">+ ₹8,432</div>
@@ -149,7 +146,7 @@ export const Home = () => {
         </section>
 
 
-        {/* ===== FEATURE GRID ===== */}
+        {/* Values & Capabilities */}
         <section className="bg-white border-y border-slate-200 py-20 lg:py-28 relative z-20">
            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
              <div className="text-center max-w-3xl mx-auto mb-16">
@@ -172,7 +169,7 @@ export const Home = () => {
         </section>
 
 
-        {/* ===== HOW IT WORKS ===== */}
+        {/* Instructional Stepper */}
         <section id="how-it-works" className="py-20 lg:py-28 bg-slate-50 relative z-10 overflow-hidden">
            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
              <div className="flex flex-col md:flex-row items-center gap-16">
@@ -225,7 +222,6 @@ export const Home = () => {
 
       </main>
 
-      {/* ===== FOOTER ===== */}
       <footer className="bg-slate-900 py-12 border-t border-slate-800">
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">

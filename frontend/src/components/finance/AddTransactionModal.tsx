@@ -23,6 +23,8 @@ export const AddTransactionModal = ({
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const isEditMode = !!initialData;
+
+  // get categories from store
   const categories =
     useSelector((state: RootState) => state.finance?.categories) ?? [];
 
@@ -33,13 +35,15 @@ export const AddTransactionModal = ({
     formState: { errors, isSubmitting },
   } = useForm<TransactionForm>({
     resolver: zodResolver(transactionFormSchema),
+    // pre-fill form if editing
     defaultValues: isEditMode
       ? {
           amount: initialData.amount,
           type: initialData.type,
           category: initialData.category._id,
           description: initialData.description,
-          date: new Date(initialData.date).toISOString().split('T')[0], // formats back to native HTML date!
+          // convert date to input format (yyyy-mm-dd)
+          date: new Date(initialData.date).toISOString().split('T')[0],
         }
       : {
           date: new Date().toISOString().split('T')[0],
@@ -49,15 +53,16 @@ export const AddTransactionModal = ({
   });
 
   const currentType = watch('type');
-  // NEW: Reactively filter dropdown list so you can't add an income transaction using an expense category!
+
+  // filter categories based on selected type (income/expense)
   const filteredCategories = categories.filter((c) => c.type === currentType);
 
   const onSubmit = async (data: TransactionForm) => {
     try {
-      if (isEditMode){
+      if (isEditMode) {
         await dispatch(editTransaction({ id: initialData._id, data })).unwrap();
         toast.success("Transaction updated successfully!");
-      }else {
+      } else {
         await dispatch(addTransaction(data)).unwrap();
         toast.success("Transaction recorded!");
       }
@@ -74,28 +79,23 @@ export const AddTransactionModal = ({
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
             Type
           </label>
-          <select
-            {...register('type')}
-            className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm font-medium outline-none"
-          >
+          <select {...register('type')} className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm font-medium outline-none">
             <option value="expense">Expense</option>
             <option value="income">Income</option>
           </select>
         </div>
+
         <div>
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
             Date
           </label>
           <div className="relative">
             <CalendarIcon className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400" />
-            <input
-              type="date"
-              {...register('date')}
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border rounded-lg text-sm outline-none"
-            />
+            <input type="date" {...register('date')} className="w-full pl-9 pr-3 py-2 bg-slate-50 border rounded-lg text-sm outline-none" />
           </div>
         </div>
       </div>
+
       <div>
         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
           Amount
@@ -110,14 +110,12 @@ export const AddTransactionModal = ({
           />
         </div>
       </div>
+
       <div>
         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
           Category
         </label>
-        <select
-          {...register('category')}
-          className="w-full px-3 py-2.5 bg-slate-50 border rounded-lg text-sm outline-none"
-        >
+        <select {...register('category')} className="w-full px-3 py-2.5 bg-slate-50 border rounded-lg text-sm outline-none">
           <option value="">-- Select Category --</option>
           {filteredCategories.map((c) => (
             <option key={c._id} value={c._id}>
@@ -125,31 +123,22 @@ export const AddTransactionModal = ({
             </option>
           ))}
         </select>
-        {errors.category && (
-          <p className="mt-1 text-xs text-rose-500">
-            {errors.category.message}
-          </p>
-        )}
+
+        {errors.category && <p className="mt-1 text-xs text-rose-500">{errors.category.message}</p>}
       </div>
+
       <div>
         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
           Description
         </label>
         <div className="relative">
           <PenLine className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            {...register('description')}
-            className="w-full pl-9 py-2.5 bg-slate-50 border rounded-lg text-sm outline-none"
-          />
+          <input type="text" {...register('description')} className="w-full pl-9 py-2.5 bg-slate-50 border rounded-lg text-sm outline-none" />
         </div>
       </div>
+
       <div className="pt-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg text-sm disabled:opacity-70 transition-colors"
-        >
+        <button type="submit" disabled={isSubmitting} className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg text-sm disabled:opacity-70 transition-colors">
           {isSubmitting ? (
             <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
           ) : isEditMode ? (

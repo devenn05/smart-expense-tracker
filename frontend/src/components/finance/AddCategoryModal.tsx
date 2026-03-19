@@ -17,29 +17,38 @@ export const AddCategoryModal = ({ onClose, initialData }: ModalProps) => {
     const isEditMode = !!initialData;
 
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<any>({
-        // Smartly swap the validation schema based on edit vs create
+        // use different schema for create vs update
         resolver: zodResolver(isEditMode ? updateCategorySchema : categorySchema),
         defaultValues: isEditMode ? {
             name: initialData.name,
             color: initialData.color
         } : { 
             color: '#0ea5e9',
-            type: 'expense' // default to expense
+            type: 'expense' // default type
         } 
     });
 
     const onSubmit = async (data: any) => {
         try {
             if (isEditMode) {
-                await dispatch(updateCategory({ id: initialData._id, data: { name: data.name, color: data.color } })).unwrap();
-                 toast.success("Category updated successfully!"); 
+                await dispatch(updateCategory({
+                    id: initialData._id,
+                    data: { name: data.name, color: data.color }
+                })).unwrap();
+                toast.success("Category updated successfully!");
             } else {
-                await dispatch(addCategory({ ...data, color: data.color || '#0ea5e9' })).unwrap();
-                toast.success("Category added successfully!"); 
+                await dispatch(addCategory({
+                    ...data,
+                    color: data.color || '#0ea5e9'
+                })).unwrap();
+                toast.success("Category added successfully!");
             }
-            dispatch(fetchCategories()); // Refresh the visual list
+
+            dispatch(fetchCategories()); // refresh list
             onClose();
-        } catch (error: any) { toast.error(error.message || error);  }
+        } catch (error: any) {
+            toast.error(error.message || error);
+        }
     }
 
     return (
@@ -47,13 +56,15 @@ export const AddCategoryModal = ({ onClose, initialData }: ModalProps) => {
             <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Category Name</label>
                 <input 
-                    type="text" {...register('name')} placeholder="e.g. Groceries" 
+                    type="text"
+                    {...register('name')}
+                    placeholder="e.g. Groceries"
                     className="block w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
                 />
                 {errors.name && <p className="mt-1 text-xs text-rose-500 font-medium">{errors.name.message as string}</p>}
             </div>
 
-            {/* ONLY show the Type dropdown if we are CREATING. We don't allow changing type after creation. */}
+            {/* only show type selection when creating */}
             {!isEditMode && (
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Transaction Type</label>

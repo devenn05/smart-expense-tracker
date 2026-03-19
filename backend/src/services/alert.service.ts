@@ -3,32 +3,43 @@ import { Budget } from "../models/Budget";
 import { Transaction } from "../models/Transaction";
 import { AlertHistory } from "../models/AlertHistory";
 import { User } from "../models/User";
-import { sendBudgetAlertEmail, sendBudgetAlertWhatsApp, sendAnomalyAlertEmail, sendAnomalyAlertWhatsApp } from "../utils/notifications";
+import {
+    sendBudgetAlertEmail,
+    sendBudgetAlertWhatsApp,
+    sendAnomalyAlertEmail,
+    sendAnomalyAlertWhatsApp
+} from "../utils/notifications";
 
+// check if user crossed budget limit
 export const checkAndTriggerBudgetAlert = async (userId: string, categoryId: string) => {
     try {
-        // Check if a budget even exists for this specific category
-        const budget = await Budget.findOne({ user: userId, category: categoryId }).populate('category', 'name');
-        if (!budget) return; // No budget = No alert needed
+        // get budget for this category
+        const budget = await Budget.findOne({
+            user: userId,
+            category: categoryId
+        }).populate('category', 'name');
 
-        // Define the current month/year exactly as our AlertHistory uses it
+        if (!budget) return;
+
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        const monthYearString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
 
-        // 3. Has this user already received a BUDGET_EXCEEDED warning for this category this month?
+        const monthYearString = `${now.getFullYear()}-${(now.getMonth() + 1)
+            .toString()
+            .padStart(2, '0')}`;
+
+        // avoid sending same alert multiple times
         const alreadyWarned = await AlertHistory.exists({
             user: userId,
             category: categoryId,
             alertType: 'BUDGET_EXCEEDED',
             monthYear: monthYearString
         });
-        
-        // If we already sent them an email this month, quietly exit to prevent spam!
+
         if (alreadyWarned) return;
 
-        // 4. Calculate exactly how much they have spent THIS month in this specific category
+        // calculate current month's spending for this category
         const totalSpentData = await Transaction.aggregate([
             {
                 $match: {
@@ -45,10 +56,9 @@ export const checkAndTriggerBudgetAlert = async (userId: string, categoryId: str
 
         const currentSpent = totalSpentData[0]?.total || 0;
 
-        // 5. DID THEY CROSS THE LIMIT?
+        // trigger alert if limit crossed
         if (currentSpent > budget.amount) {
-            
-            // Log it in AlertHistory FIRST to lock it, preventing duplicate async calls from overlapping
+            // store alert to avoid duplicates
             await AlertHistory.create({
                 user: userId,
                 category: categoryId,
@@ -56,18 +66,29 @@ export const checkAndTriggerBudgetAlert = async (userId: string, categoryId: str
                 monthYear: monthYearString
             });
 
-            // Fetch User Details to get contact info and preferences
             const user = await User.findById(userId);
             if (!user) return;
 
             const categoryName = (budget.category as any).name;
 
-            // Trigger Notifications based on preferences!
+            // send notifications based on user preferences
             if (user.alertPreferences.email) {
-                await sendBudgetAlertEmail(user.email, user.name, categoryName, budget.amount, currentSpent);
+                await sendBudgetAlertEmail(
+                    user.email,
+                    user.name,
+                    categoryName,
+                    budget.amount,
+                    currentSpent
+                );
             }
+
             if (user.alertPreferences.whatsapp && user.phoneNumber) {
-                await sendBudgetAlertWhatsApp(user.phoneNumber, categoryName, budget.amount, currentSpent);
+                await sendBudgetAlertWhatsApp(
+                    user.phoneNumber,
+                    categoryName,
+                    budget.amount,
+                    currentSpent
+                );
             }
         }
 
@@ -76,27 +97,32 @@ export const checkAndTriggerBudgetAlert = async (userId: string, categoryId: str
     }
 };
 
+// check abnormal spending compared to past months
 export const checkAndTriggerAnomalyAlert = async (userId: string, categoryId: string) => {
     try {
         const now = new Date();
+
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        const monthYearString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
 
-        // 1. Did we already warn them about an anomaly for this category this month? (Anti-spam!)
+        const monthYearString = `${now.getFullYear()}-${(now.getMonth() + 1)
+            .toString()
+            .padStart(2, '0')}`;
+
+        // prevent duplicate alerts
         const alreadyWarned = await AlertHistory.exists({
             user: userId,
             category: categoryId,
             alertType: 'OVERSPENDING_ANOMALY',
             monthYear: monthYearString
         });
+
         if (alreadyWarned) return;
 
-        // 2. Fetch History Dates (Strictly 3 prior months)
+        // get last 3 months history
         const startOfHistory = new Date(now.getFullYear(), now.getMonth() - 3, 1);
         const endOfHistory = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-        // 3. Mathematical Pipeline - specifically target just this ONE category
         const historyData = await Transaction.aggregate([
             {
                 $match: {
@@ -107,19 +133,28 @@ export const checkAndTriggerAnomalyAlert = async (userId: string, categoryId: st
                 }
             },
             {
-                $group: { _id: { month: { $month: '$date' }, year: { $year: '$date' } }, monthlyTotal: { $sum: '$amount' } }
+                $group: {
+                    _id: {
+                        month: { $month: '$date' },
+                        year: { $year: '$date' }
+                    },
+                    monthlyTotal: { $sum: '$amount' }
+                }
             },
             {
-                $group: { _id: null, historicalAverage: { $avg: '$monthlyTotal' }, monthsOfData: { $sum: 1 } }
+                $group: {
+                    _id: null,
+                    historicalAverage: { $avg: '$monthlyTotal' },
+                    monthsOfData: { $sum: 1 }
+                }
             }
         ]);
 
         const historicalAverage = historyData[0]?.historicalAverage || 0;
-        
-        // If they have no real history yet, we shouldn't blast them with alerts
+
         if (historicalAverage === 0) return;
 
-        // 4. Find how much they spent this current month so far
+        // current month spending
         const currentSpentData = await Transaction.aggregate([
             {
                 $match: {
@@ -136,10 +171,9 @@ export const checkAndTriggerAnomalyAlert = async (userId: string, categoryId: st
 
         const currentSpent = currentSpentData[0]?.total || 0;
 
-        // 5. THE RULE: Is current spending strictly > 40% of their history?
+        // trigger alert if spending is 40% higher than average
         if (currentSpent > (historicalAverage * 1.4)) {
 
-            // Log to prevent duplicate alerts!
             await AlertHistory.create({
                 user: userId,
                 category: categoryId,
@@ -147,18 +181,35 @@ export const checkAndTriggerAnomalyAlert = async (userId: string, categoryId: st
                 monthYear: monthYearString
             });
 
-            // Trigger Notifications
             const user = await User.findById(userId);
-            const transactionDoc = await Transaction.findOne({ category: categoryId }).populate('category', 'name');
-            const categoryName = transactionDoc ? (transactionDoc.category as any).name : 'Expense';
+            const transactionDoc = await Transaction
+                .findOne({ category: categoryId })
+                .populate('category', 'name');
+
+            const categoryName = transactionDoc
+                ? (transactionDoc.category as any).name
+                : 'Expense';
 
             if (user?.alertPreferences.email) {
-                await sendAnomalyAlertEmail(user.email, user.name, categoryName, historicalAverage, currentSpent);
+                await sendAnomalyAlertEmail(
+                    user.email,
+                    user.name,
+                    categoryName,
+                    historicalAverage,
+                    currentSpent
+                );
             }
+
             if (user?.alertPreferences.whatsapp && user.phoneNumber) {
-                await sendAnomalyAlertWhatsApp(user.phoneNumber, categoryName, historicalAverage, currentSpent);
+                await sendAnomalyAlertWhatsApp(
+                    user.phoneNumber,
+                    categoryName,
+                    historicalAverage,
+                    currentSpent
+                );
             }
         }
+
     } catch (error) {
         console.error("Anomaly Alert Trigger Failed:", error);
     }

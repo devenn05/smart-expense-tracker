@@ -14,6 +14,8 @@ import {
 
 export const Dashboard = () => {
     const dispatch = useDispatch<AppDispatch>();
+    
+    // Sync financial state and user context from store
     const { user } = useSelector((state: RootState) => state.auth);
     const { data, isLoading } = useSelector((state: RootState) => state.analytics);
 
@@ -23,6 +25,7 @@ export const Dashboard = () => {
 
     const currentMonthYear = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
 
+    // Global loading state for analytics data
     if (isLoading || !data) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-500">
@@ -34,27 +37,32 @@ export const Dashboard = () => {
 
     const { totals, categoryBreakdown, highestIncome, topRecentExpenses, overspending, predictions } = data;
 
-    // ----- FORECASTING MATH -----
+    // Temporal calculations for burn-rate and forecasting
     const now = new Date();
     const daysPassed = Math.max(1, now.getDate()); 
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const daysRemaining = daysInMonth - daysPassed;
 
+    // Predictive metrics based on current spending velocity
     const currentDailyAverage = totals.totalExpense / daysPassed;
     const projectedFinalBalance = totals.totalIncome - predictions.predictedMonthlyExpense;
     
-    // How much they can safely spend per day to not dip into negatives by the month's end.
+    // Theoretical daily budget remaining to maintain a positive balance
     const safeDailyLimit = daysRemaining > 0 ? Math.max(0, (totals.totalIncome - totals.totalExpense) / daysRemaining) : 0;
     
-    // Find the highest and most draining expense categories for our bar charts and warnings
-    const sortedCategories = [...categoryBreakdown].sort((a,b) => b.totalSpent - a.totalSpent).filter(c => c.totalSpent > 0);
+    // Sort categories by expenditure for chart parity
+    const sortedCategories = [...categoryBreakdown]
+        .sort((a,b) => b.totalSpent - a.totalSpent)
+        .filter(c => c.totalSpent > 0);
+    
     const highestDrainCategory = sortedCategories.length > 0 ? sortedCategories[0] : null;
 
-    const formatCurrency = (val: number) => `₹${(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formatCurrency = (val: number) => 
+        `₹${(val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     return(
         <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-            {/* -- Dashboard Header -- */}
+            {/* Header & Meta Info */}
             <div className="sm:flex sm:items-end sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Financial Command Center</h1>
@@ -70,9 +78,8 @@ export const Dashboard = () => {
                 </div>
             </div>
 
-            {/* --- Level 1: Core KPI Cards --- */}
+            {/* Core KPI Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-center relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
                         <Wallet className="w-24 h-24 text-slate-900" />
@@ -106,7 +113,7 @@ export const Dashboard = () => {
                 </div>
             </div>
 
-            {/* --- Level 2: Quick Highlights (Total Txs, Max Expense, Max Income) --- */}
+            {/* Quick-Glance Performance Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                  <div className="bg-brand-50/50 rounded-xl p-5 border border-brand-100/60 flex items-center justify-between">
                      <div>
@@ -131,9 +138,9 @@ export const Dashboard = () => {
                  </div>
             </div>
 
-            {/* --- Level 3: Visualization Grid! (Pie AND Bar side by side!) --- */}
+            {/* Visual Analytics Layer */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                
+                {/* Expenditure Distribution: Bar Chart */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[420px]">
                     <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50 rounded-t-2xl"><BarChart3 className="w-5 h-5 text-indigo-500" /><h3 className="text-base font-semibold text-slate-800">Visual Spend Dispersion (Bar)</h3></div>
                     <div className="flex-1 p-6 pb-2 pr-8">
@@ -144,10 +151,10 @@ export const Dashboard = () => {
                                 <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 11}} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 11}} width={50} />
                                 <Tooltip 
-  cursor={{ fill: '#f1f5f9' }} 
-  formatter={(val: any) => [formatCurrency(Number(val) || 0), "Spent"]} 
-  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }} 
-/>
+                                  cursor={{ fill: '#f1f5f9' }} 
+                                  formatter={(val: any) => [formatCurrency(Number(val) || 0), "Spent"]} 
+                                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }} 
+                                />
                                 <Bar dataKey="totalSpent" radius={[6, 6, 0, 0]}>
                                   {sortedCategories.map((entry, index) => (<Cell key={`bar-${index}`} fill={entry.color} />))}
                                 </Bar>
@@ -157,6 +164,7 @@ export const Dashboard = () => {
                     </div>
                 </div>
 
+                {/* Weighted Category Breakdown: Pie Chart */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[420px]">
                     <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50 rounded-t-2xl"><RechartsPie className="w-5 h-5 text-indigo-500" /><h3 className="text-base font-semibold text-slate-800">Categorical Slices (Pie)</h3></div>
                     <div className="flex-1 p-6">
@@ -175,10 +183,9 @@ export const Dashboard = () => {
                 </div>
             </div>
 
-            {/* --- Level 4: Top 5 Recent Feed & Overspending Alerts --- */}
+            {/* Transaction Intelligence & Anomaly Detection */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                {/* Left side: NEW Top 5 massive transactions feed */}
+                {/* Ranking: Highest Outflows */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col">
                     <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/80 rounded-t-2xl">
                         <Columns3 className="w-5 h-5 text-slate-500" />
@@ -208,7 +215,7 @@ export const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Right Side: Existing Smart Alerts */}
+                {/* Algorithmic Alerts (Overspending Detectors) */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col">
                     <div className="px-5 py-4 border-b border-rose-100 flex items-center justify-between bg-rose-50/40 rounded-t-2xl border-t-2 border-t-rose-400">
                         <div className="flex items-center gap-2">
@@ -249,101 +256,95 @@ export const Dashboard = () => {
 
             </div>
 
-            {/* ----- NEW: FORECASTING & BEHAVIORAL INTELLIGENCE MODULE ----- */}
+            {/* Predictive Forecasting Engine */}
             <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-xl overflow-hidden relative border border-indigo-500/30">
-    {/* Techy background textures */}
-    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-[100px] pointer-events-none" />
-    <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-    <div className="relative z-10 px-6 sm:px-8 py-6 border-b border-white/10 flex items-center justify-between">
-         <div className="flex items-center gap-3">
-             <div className="p-2 bg-white/10 rounded-lg">
-                <BrainCircuit className="w-6 h-6 text-brand-300" />
-             </div>
-             <h2 className="text-xl font-bold text-white tracking-wide">Smart Spending Forecast</h2>
-         </div>
-         <Sparkles className="w-5 h-5 text-indigo-400 opacity-60 hidden sm:block animate-pulse" />
-    </div>
-
-    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-white/10">
-        
-        {/* Prediction Stat Block */}
-        <div className="p-6 sm:p-8 hover:bg-white/5 transition-colors group">
-            <div className="flex items-center gap-2 mb-2 opacity-80">
-               <TrendingUp className="w-4 h-4 text-brand-300" />
-               <h4 className="text-xs font-semibold uppercase tracking-wider text-brand-200">Where you're heading</h4>
-            </div>
-            <h3 className="text-3xl font-black text-white tracking-tight mb-2 flex items-baseline gap-2">
-                 {formatCurrency(predictions.predictedMonthlyExpense)}
-                 {predictions.predictedMonthlyExpense > totals.totalExpense && (
-                    <span className="text-sm font-medium text-amber-300 bg-amber-900/40 px-2 py-0.5 rounded flex items-center gap-1 border border-amber-500/30 -translate-y-1">
-                        Predicted Expenses
-                    </span>
-                 )}
-            </h3>
-            
-            <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/5 text-sm text-slate-300 leading-relaxed font-medium">
-                <div className="flex items-center gap-2 mb-1.5 opacity-60 text-xs">
-                    <Calculator className="w-3.5 h-3.5" /> Quick Math
+                <div className="relative z-10 px-6 sm:px-8 py-6 border-b border-white/10 flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                         <div className="p-2 bg-white/10 rounded-lg">
+                            <BrainCircuit className="w-6 h-6 text-brand-300" />
+                         </div>
+                         <h2 className="text-xl font-bold text-white tracking-wide">Smart Spending Forecast</h2>
+                     </div>
+                     <Sparkles className="w-5 h-5 text-indigo-400 opacity-60 hidden sm:block animate-pulse" />
                 </div>
-                You spend about <strong className="text-white">₹{currentDailyAverage.toFixed(0)} per day</strong>. If you keep this pace for the <strong className="text-white">{daysInMonth} days</strong> left in the month, here is your result.
-            </div>
-        </div>
 
-        {/* Behavior Trajectory Analysis */}
-        <div className="p-6 sm:p-8 hover:bg-white/5 transition-colors">
-            <div className="flex items-center gap-2 mb-2 opacity-80">
-               <Activity className="w-4 h-4 text-emerald-300" />
-               <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-200">Daily Speed Limit</h4>
-            </div>
-            <h3 className="text-3xl font-black text-white tracking-tight mb-1">
-                {formatCurrency(safeDailyLimit)} <span className="text-sm font-medium text-slate-400 uppercase tracking-wide opacity-80 ml-1"> / Day left</span>
-            </h3>
-            <p className="text-sm text-slate-400 font-medium leading-relaxed mb-4 mt-2">
-                To stay in the green, try not to spend more than this amount for the next <span className="text-slate-200 font-bold">{daysRemaining} days</span>.
-            </p>
-            
-            {daysRemaining > 0 && highestDrainCategory ? (
-                 <div className="flex items-start gap-3 mt-auto border-t border-white/10 pt-4">
-                    <div className="p-1.5 rounded-md mt-0.5 bg-rose-500/20 text-rose-300">
-                         <TrendingDown className="w-4 h-4" />
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-white/10">
+                    <div className="p-6 sm:p-8 hover:bg-white/5 transition-colors group">
+                        <div className="flex items-center gap-2 mb-2 opacity-80">
+                           <TrendingUp className="w-4 h-4 text-brand-300" />
+                           <h4 className="text-xs font-semibold uppercase tracking-wider text-brand-200">Where you're heading</h4>
+                        </div>
+                        <h3 className="text-3xl font-black text-white tracking-tight mb-2 flex items-baseline gap-2">
+                             {formatCurrency(predictions.predictedMonthlyExpense)}
+                             {predictions.predictedMonthlyExpense > totals.totalExpense && (
+                                <span className="text-sm font-medium text-amber-300 bg-amber-900/40 px-2 py-0.5 rounded flex items-center gap-1 border border-amber-500/30 -translate-y-1">
+                                    Predicted Expenses
+                                </span>
+                             )}
+                        </h3>
+                        
+                        <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/5 text-sm text-slate-300 leading-relaxed font-medium">
+                            <div className="flex items-center gap-2 mb-1.5 opacity-60 text-xs">
+                                <Calculator className="w-3.5 h-3.5" /> Quick Math
+                            </div>
+                            You spend about <strong className="text-white">₹{currentDailyAverage.toFixed(0)} per day</strong>. If you keep this pace for the <strong className="text-white">{daysInMonth} days</strong> left in the month, here is your result.
+                        </div>
                     </div>
-                    <p className="text-xs font-medium text-slate-300 leading-relaxed">
-                        Heads up: <span className="text-white font-bold">{highestDrainCategory.category}</span> is the main reason your savings are dropping at {formatCurrency(highestDrainCategory.totalSpent)}.
-                    </p>
-                 </div>
-            ) : (
-                 <p className="text-xs text-emerald-300 border-t border-white/10 pt-4 opacity-80 font-semibold tracking-wide flex items-center gap-1">
-                    <Activity className="w-3.5 h-3.5" /> Your spending habits look great right now!
-                 </p>
-            )}
-        </div>
 
-        {/* Ending Liquidity Snapshot */}
-        <div className="p-6 sm:p-8 hover:bg-white/5 transition-colors flex flex-col justify-center bg-indigo-950/20 relative">
-            <div className="absolute right-4 top-4 bg-brand-500 w-2 h-2 rounded-full animate-ping opacity-70"></div>
-            <div className="absolute right-4 top-4 bg-brand-500 w-2 h-2 rounded-full"></div>
+                    <div className="p-6 sm:p-8 hover:bg-white/5 transition-colors">
+                        <div className="flex items-center gap-2 mb-2 opacity-80">
+                           <Activity className="w-4 h-4 text-emerald-300" />
+                           <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-200">Daily Speed Limit</h4>
+                        </div>
+                        <h3 className="text-3xl font-black text-white tracking-tight mb-1">
+                            {formatCurrency(safeDailyLimit)} <span className="text-sm font-medium text-slate-400 uppercase tracking-wide opacity-80 ml-1"> / Day left</span>
+                        </h3>
+                        <p className="text-sm text-slate-400 font-medium leading-relaxed mb-4 mt-2">
+                            To stay in the green, try not to spend more than this amount for the next <span className="text-slate-200 font-bold">{daysRemaining} days</span>.
+                        </p>
+                        
+                        {daysRemaining > 0 && highestDrainCategory ? (
+                             <div className="flex items-start gap-3 mt-auto border-t border-white/10 pt-4">
+                                <div className="p-1.5 rounded-md mt-0.5 bg-rose-500/20 text-rose-300">
+                                     <TrendingDown className="w-4 h-4" />
+                                </div>
+                                <p className="text-xs font-medium text-slate-300 leading-relaxed">
+                                    Heads up: <span className="text-white font-bold">{highestDrainCategory.category}</span> is the main reason your savings are dropping at {formatCurrency(highestDrainCategory.totalSpent)}.
+                                </p>
+                             </div>
+                        ) : (
+                             <p className="text-xs text-emerald-300 border-t border-white/10 pt-4 opacity-80 font-semibold tracking-wide flex items-center gap-1">
+                                <Activity className="w-3.5 h-3.5" /> Your spending habits look great right now!
+                             </p>
+                        )}
+                    </div>
 
-            <div className="flex items-center gap-2 mb-2 opacity-80">
-               <Wallet className="w-4 h-4 text-purple-300" />
-               <h4 className="text-xs font-semibold uppercase tracking-wider text-purple-200">Final Savings Goal</h4>
+                    <div className="p-6 sm:p-8 hover:bg-white/5 transition-colors flex flex-col justify-center bg-indigo-950/20 relative">
+                        <div className="absolute right-4 top-4 bg-brand-500 w-2 h-2 rounded-full animate-ping opacity-70"></div>
+                        <div className="absolute right-4 top-4 bg-brand-500 w-2 h-2 rounded-full"></div>
+
+                        <div className="flex items-center gap-2 mb-2 opacity-80">
+                           <Wallet className="w-4 h-4 text-purple-300" />
+                           <h4 className="text-xs font-semibold uppercase tracking-wider text-purple-200">Final Savings Goal</h4>
+                        </div>
+                        
+                        <div className={`mt-2 flex items-baseline text-4xl sm:text-5xl font-extrabold tracking-tighter ${projectedFinalBalance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                             {projectedFinalBalance > 0 && '+'}{formatCurrency(projectedFinalBalance)}
+                        </div>
+
+                        <p className="mt-4 text-sm leading-relaxed text-slate-300 font-medium">
+                            {projectedFinalBalance >= 0 ? (
+                                <>If you stick to your current habits, this is the "bonus" amount that will move <strong className="text-white font-bold tracking-wide">straight into your savings</strong> when the month ends.</>
+                            ) : (
+                                <>You're on track to spend more than you have. <span className="text-rose-200 font-bold">Try cutting back on non-essentials today to avoid a zero balance.</span> </> 
+                            )}
+                        </p>
+                    </div>
+                </div>
             </div>
-            
-            <div className={`mt-2 flex items-baseline text-4xl sm:text-5xl font-extrabold tracking-tighter ${projectedFinalBalance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                 {projectedFinalBalance > 0 && '+'}{formatCurrency(projectedFinalBalance)}
-            </div>
-
-            <p className="mt-4 text-sm leading-relaxed text-slate-300 font-medium">
-                {projectedFinalBalance >= 0 ? (
-                    <>If you stick to your current habits, this is the "bonus" amount that will move <strong className="text-white font-bold tracking-wide">straight into your savings</strong> when the month ends.</>
-                ) : (
-                    <>You're on track to spend more than you have. <span className="text-rose-200 font-bold">Try cutting back on non-essentials today to avoid a zero balance.</span> </> 
-                )}
-            </p>
-        </div>
-    </div>
-</div>
-            
         </div>
     )
 }

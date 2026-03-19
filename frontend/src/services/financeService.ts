@@ -1,33 +1,46 @@
 import api from "./api";
 
 export const financeServce = {
-    getCategories: async() =>{
+
+    // Fetch all categories (income + expense)
+    getCategories: async () => {
         const response = await api.get('/categories');
         return response.data;
     },
-    createCategories: async(categoryData: { name: string; type: 'income' | 'expense'; color?: string })=>{
+
+    // Create a new category
+    createCategories: async (categoryData: { name: string; type: 'income' | 'expense'; color?: string }) => {
         const response = await api.post('/categories', categoryData);
         return response.data;
     },
-    updateCategory: async(id: string, categoryData: { name: string; color?: string })=>{
+
+    // Update category name/color
+    updateCategory: async (id: string, categoryData: { name: string; color?: string }) => {
         const response = await api.put(`/categories/${id}`, categoryData);
         return response.data;
     },
-    deleteCategories: async(id: string) =>{
+
+    // Delete a category
+    deleteCategories: async (id: string) => {
         const response = await api.delete(`/categories/${id}`);
-        return response.data
+        return response.data;
     },
     
-    getBudgets: async()=>{
+    // Fetch all budgets
+    getBudgets: async () => {
         const response = await api.get('/budget');
         return response.data;
     },
-    upsertBudget: async(budgetData: {category: string; amount: number })=>{
+
+    // Create or update budget (upsert behavior)
+    upsertBudget: async (budgetData: { category: string; amount: number }) => {
         const response = await api.post('/budget', budgetData);
         return response.data;
     },
-    deleteBudget: async(id: string) =>{
-        const response = await api.delete(`/budget/${id}`)
-        return response.data
+
+    // Delete a budget entry
+    deleteBudget: async (id: string) => {
+        const response = await api.delete(`/budget/${id}`);
+        return response.data;
     }
 }

@@ -37,12 +37,20 @@ export const UpdatePasswordModal = ({ onClose }: { onClose: () => void }) => {
                     <Lock className="absolute left-3 top-2.5 w-4 h-4 text-brand-500" />
                     <input type="password" {...register('newPassword')} className="w-full pl-9 pr-3 py-2 bg-brand-50/50 border border-brand-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-brand-500" />
                 </div>
-                <p className="text-xs text-slate-400 mt-1">Require 1 uppercase, 1 lowercase, 1 number, 8 chars.</p>
+
+                {/* password rules hint */}
+                <p className="text-xs text-slate-400 mt-1">
+                    Require 1 uppercase, 1 lowercase, 1 number, 8 chars.
+                </p>
+
                 {errors.newPassword && <p className="mt-1 text-xs text-rose-500">{errors.newPassword.message}</p>}
             </div>
 
             <div className="pt-4 flex justify-end gap-2">
-                <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-lg text-sm">Cancel</button>
+                <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-lg text-sm">
+                    Cancel
+                </button>
+
                 <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-slate-900 text-white hover:bg-black font-semibold rounded-lg text-sm">
                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin"/> : 'Confirm Modification'}
                 </button>

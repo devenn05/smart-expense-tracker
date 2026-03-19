@@ -17,15 +17,19 @@ import { ForgotPassword } from './pages/ForgotPassword';
 
 function App() {
   const dispatch = useDispatch();
-  useEffect(()=>{
-    // Check if user is logged in upon initial page load
+
+  useEffect(() => {
+    /**
+     * Bootstrap user session on mount.
+     * Checks for a valid httpOnly cookie via the /me endpoint.
+     */
     const verifyUser = async () => {
-      try{
-        // If the backend accepts the cookie, save the user!
+      try {
         const response = await authService.getMe();
+        // Hydrate store if session is valid
         dispatch(setCredentials(response.user))
-      } catch (error){
-        // If the backend rejects the cookie, clear the user!
+      } catch (error) {
+        // Fallback to guest state if unauthorized or cookie expired
         dispatch(clearCredentials());
       } finally {
         dispatch(setLoading(false))
@@ -36,6 +40,7 @@ function App() {
 
   return (
     <>
+      {/* Global notification portal */}
       <Toaster 
         position="top-right" 
         toastOptions={{ 
@@ -43,26 +48,27 @@ function App() {
             style: { background: '#fff', color: '#334155', fontWeight: '500' }
         }} 
       />
+      
       <BrowserRouter>
         <Routes>
-
+          {/* Public Landing */}
           <Route path="/" element={<Home />} />
 
+          {/* Guest-only routes (Auth wrapper) */}
           <Route element={<AuthLayout/>}>
-            <Route path='/login' element={<Login/>}></Route>
-            <Route path='/register' element={<Register/>}></Route>
-             <Route path='/forgot-password' element={<ForgotPassword />}></Route>
+            <Route path='/login' element={<Login/>} />
+            <Route path='/register' element={<Register/>} />
+            <Route path='/forgot-password' element={<ForgotPassword />} />
           </Route>
 
+          {/* Authenticated routes (Guard wrapper) */}
           <Route element={<ProtectedRoute/>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/finances" element={<CategoriesBudgets />} />
             <Route path="/transactions" element={<Transactions />} />
           </Route>
 
-          
-
-          {/* Default catch-all redirects to Dashboard */}
+          {/* Catch-all: Redirect unknown paths to dashboard (will trigger login if unauth) */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>

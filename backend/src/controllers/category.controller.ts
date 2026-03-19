@@ -4,82 +4,91 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../utils/AppError";
 import { Transaction } from "../models/Transaction";
 
-// Get all applicable categories (Predefined + User's Custom)
-export const getCategories = asyncHandler(async (req: Request, res: Response)=>{
+// fetch all categories (both predefined + user's own)
+export const getCategories = asyncHandler(async (req: Request, res: Response) => {
     const categories = await Category.find({
         $or: [
-            {isPredefined: true},
-            {user: req.user?._id}
+            { isPredefined: true },
+            { user: req.user?._id }
         ]
-    }).sort({isPredefined: -1, name: 1}) // // Sorts by putting predefined first, then alphabetical
+    }).sort({ isPredefined: -1, name: 1 }); // predefined first, then sort by name
 
-    res.status(200).json({success: true, data: categories})
-})
+    res.status(200).json({ success: true, data: categories });
+});
 
-// Create a custom category
-export const createCategory = asyncHandler(async (req: Request, res: Response)=>{
-    const {name, type, color} = req.body = req.body
+// create a new custom category
+export const createCategory = asyncHandler(async (req: Request, res: Response) => {
+    const { name, type, color } = req.body;
+
     const category = await Category.create({
         name,
         type,
-        color: color || (type === 'income' ? '#10b981' : '#f43f5e'),
+        color: color || (type === 'income' ? '#10b981' : '#f43f5e'), // default color based on type
         isPredefined: false,
         user: req.user?._id,
-    })
-    res.status(201).json({ success: true, data: category });
-})
+    });
 
-//Update a custom category
-export const updateCategory = asyncHandler(async (req: Request, res: Response)=>{
+    res.status(201).json({ success: true, data: category });
+});
+
+// update existing custom category
+export const updateCategory = asyncHandler(async (req: Request, res: Response) => {
     const category = await Category.findById(req.params.id);
+
     if (!category) {
         throw new AppError("Category not found", 404);
     }
 
-    // Cannot edit predefined categories
-    if (category.isPredefined){
+    // block editing predefined ones
+    if (category.isPredefined) {
         throw new AppError("System predefined categories cannot be modified.", 403);
     }
 
-    // Cannot edit someone else's category
-    if (category.user?.toString() !== req.user?._id.toString()){
+    // make sure user owns this category
+    if (category.user?.toString() !== req.user?._id.toString()) {
         throw new AppError('Not authorized to edit this category.', 403);
     }
 
     const { name, color } = req.body;
-    
-    // We update safely without altering the 'type' to prevent historical corruption
+
+    // only allow updating name and color
     if (name) category.name = name;
     if (color) category.color = color;
-    
+
     await category.save();
 
     res.status(200).json({ success: true, data: category });
 });
 
-// Delete a category
-export const deleteCategory = asyncHandler(async(req: Request, res: Response)=>{
-    const category = await Category.findById(req.params.id)
-    if (!category){
-        throw new AppError("Category not found", 404)
+// delete a category
+export const deleteCategory = asyncHandler(async (req: Request, res: Response) => {
+    const category = await Category.findById(req.params.id);
+
+    if (!category) {
+        throw new AppError("Category not found", 404);
     }
 
-    // Ensure users cannot delete predefined categories
-    if (category.isPredefined){
-        throw new AppError("Cannot delete predefined Categories", 403)
+    // prevent deleting predefined categories
+    if (category.isPredefined) {
+        throw new AppError("Cannot delete predefined Categories", 403);
     }
 
-    // Ensure users can only delete THEIR OWN custom categories
-    if (category.user?.toString() !== req.user?._id.toString()){
+    // ensure ownership
+    if (category.user?.toString() !== req.user?._id.toString()) {
         throw new AppError('Not authorized to delete this category', 403);
     }
 
-    // Prevent deletion if transactions are currently linked to this category
+    // check if any transactions are using this category
     const linkedTransactionsCount = await Transaction.countDocuments({ category: category._id });
+
     if (linkedTransactionsCount > 0) {
-        throw new AppError('Cannot delete category because it is actively linked to existing transactions. Please re-assign or delete those transactions first.', 400);
+        throw new AppError(
+            'Cannot delete category because it is linked to transactions. Update or delete those first.',
+            400
+        );
     }
 
     await category.deleteOne();
+
     res.status(200).json({ success: true, message: 'Category deleted successfully' });
-})
+});

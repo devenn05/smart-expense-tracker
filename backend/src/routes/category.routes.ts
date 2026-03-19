@@ -6,11 +6,19 @@ import { createCategorySchema, updateCategorySchema } from "../schemas/finance.s
 
 const router = Router();
 
-router.use(protect)
+// user must be logged in for all category actions
+router.use(protect);
 
+// get all categories
 router.get('/', getCategories);
+
+// create new category
 router.post('/', validate(createCategorySchema), createCategory);
-router.put('/:id', validate(updateCategorySchema), updateCategory); 
-router.delete('/:id', deleteCategory)
+
+// update category by id
+router.put('/:id', validate(updateCategorySchema), updateCategory);
+
+// delete category by id
+router.delete('/:id', deleteCategory);
 
 export default router;

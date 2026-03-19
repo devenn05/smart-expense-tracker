@@ -1,21 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit"
 import type { PayloadAction } from "@reduxjs/toolkit"
 
-// Match the shape of the user from the backend
 interface User { 
     _id: number
     name: string
     email: string
 }
 
-// Create a structure to set initial state
 interface authState {
     user: User | null
     isAuth: boolean
     isLoading: boolean
 }
 
-// Set the initial state to pass into slice
 const initialState: authState = {
     user: null,
     isAuth: false,
@@ -26,12 +23,13 @@ const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {
-        // Actions to update the state
+        // Sync user session to state after login/verification
         setCredentials: (state, action: PayloadAction<User>) =>{
             state.user = action.payload;
             state.isAuth = true;
             state.isLoading = false;
         },
+        // Wipe session data on logout
         clearCredentials: (state) =>{
             state.user = null;
             state.isAuth = false;
@@ -42,5 +40,6 @@ const authSlice = createSlice({
         }
     }
 })
+
 export const {setCredentials, clearCredentials, setLoading} = authSlice.actions
 export default authSlice.reducer;

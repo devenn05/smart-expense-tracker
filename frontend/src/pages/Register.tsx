@@ -2,38 +2,39 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import {registerSchema,verifyOtpSchema,type RegisterForm,type VerifyOtpForm,} from '../utils/validations';
+import { registerSchema, verifyOtpSchema, type RegisterForm, type VerifyOtpForm } from '../utils/validations';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { authService } from '../services/authService';
 import { setCredentials } from '../store/slices/authSlice';
-import {User,Mail,Lock,Phone,Loader2,ArrowLeft,KeyRound,MessageSquare,} from 'lucide-react';
+import { User, Mail, Lock, Phone, Loader2, ArrowLeft, KeyRound, MessageSquare } from 'lucide-react';
 
 export const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // -- Component State --
+  // Workflow state: Step 1 = Details, Step 2 = OTP Verification
   const [step, setStep] = useState<1 | 2>(1);
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [requiresWhatsapp, setRequiresWhatsapp] = useState(false);
 
-  // -- Forms --
+  // Form instance for primary user details
   const registerForm = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   });
 
+  // Form instance for the 2FA/OTP layer
   const otpForm = useForm<VerifyOtpForm>({
     resolver: zodResolver(verifyOtpSchema),
-    defaultValues: {     
+    defaultValues: {      
       emailOtp: '',
       whatsappOtp: '',
     },
   });
 
-  // Handle Step 1: Submit Details & Trigger OTP Generation
+  // Post user details and trigger OTP dispatch via backend
   const onRegisterSubmit = async (data: RegisterForm) => {
     try {
-      // Treat empty string as undefined for the backend
+      // Clean up optional phone field to prevent sending empty strings to API
       if (!data.phoneNumber) delete data.phoneNumber;
 
       const response = await authService.register(data);
@@ -41,7 +42,7 @@ export const Register = () => {
       setRegisteredEmail(data.email);
       setRequiresWhatsapp(response.requiresWhatsAppOtp || false);
       
-      // Wipes any ghost data right before the screen changes
+      // Clear previous attempts before moving to verification screen
       otpForm.reset({ emailOtp: '', whatsappOtp: '' }); 
       
       setStep(2);
@@ -52,7 +53,7 @@ export const Register = () => {
     }
   };
 
-  // Handle Step 2: Submit OTPs & Actually Login
+  // Verify dual-channel OTPs and establish user session
   const onOtpSubmit = async (data: VerifyOtpForm) => {
     try {
       const payload = {
@@ -72,7 +73,7 @@ export const Register = () => {
     }
   };
 
-  // ======== RENDER STEP 2: OTP VERIFICATION ========
+  // View: Verification Step (Email + Optional WhatsApp)
   if (step === 2) {
     return (
       <div className="animate-in fade-in slide-in-from-right-8 duration-300">
@@ -122,6 +123,7 @@ export const Register = () => {
             )}
           </div>
 
+          {/* Conditional field if user opted for WhatsApp alerts */}
           {requiresWhatsapp && (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -173,7 +175,7 @@ export const Register = () => {
     );
   }
 
-  // ======== RENDER STEP 1: REGISTRATION ========
+  // View: Detail Intake (Step 1)
   return (
     <div className="animate-in fade-in duration-300">
       <div className="mb-6 text-center">

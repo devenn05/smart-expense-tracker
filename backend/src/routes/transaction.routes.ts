@@ -6,9 +6,17 @@ import { validate } from "../middlewares/validateRequest";
 
 const router = Router();
 
-router.use(protect)
+// all transaction routes require login
+router.use(protect);
 
-router.route('/').get(getTransaction).post(validate(transactionSchema), createTransaction)
-router.route('/:id').put(validate(transactionSchema), updateTransaction).delete(deleteTransaction)
+// get all transactions or create a new one
+router.route('/')
+    .get(getTransaction)
+    .post(validate(transactionSchema), createTransaction);
+
+// update or delete a transaction by id
+router.route('/:id')
+    .put(validate(transactionSchema), updateTransaction)
+    .delete(deleteTransaction);
 
 export default router;

@@ -3,12 +3,12 @@ import { Transaction } from '../models/Transaction';
 
 export const detectOverspending = async (userId: string, currentCategorySpending: any[]) => {
   const now = new Date();
-  
-  // Calculate Exact 3-Month Window
+
+  // last 3 months range (excluding current month)
   const startOfHistory = new Date(now.getFullYear(), now.getMonth() - 3, 1);
   const endOfHistory = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  // Aggregation Pipeline to Group By Month, Then Average
+  // get average monthly spend per category
   const history = await Transaction.aggregate([
     {
       $match: {
@@ -17,15 +17,19 @@ export const detectOverspending = async (userId: string, currentCategorySpending
         date: { $gte: startOfHistory, $lte: endOfHistory },
       },
     },
-    // Step 1: Group by specific Category AND Month
     {
+      // group by category + month
       $group: {
-        _id: { category: '$category', month: { $month: '$date' }, year: { $year: '$date' } },
+        _id: {
+          category: '$category',
+          month: { $month: '$date' },
+          year: { $year: '$date' }
+        },
         monthlyTotal: { $sum: '$amount' },
       },
     },
-    // Step 2: Re-group strictly by Category to average out the months found
     {
+      // calculate average per category
       $group: {
         _id: '$_id.category',
         historicalAverage: { $avg: '$monthlyTotal' },
@@ -34,22 +38,23 @@ export const detectOverspending = async (userId: string, currentCategorySpending
     },
   ]);
 
-  // If NO history exists AT ALL, trigger the global insufficient flag.
+  // if no past data, skip detection
   if (history.length === 0) {
     return { status: 'insufficient_data', alerts: [] };
   }
 
-  // If history exists, let's find the over-spenders!
   const alerts: any[] = [];
 
+  // compare current spending with history
   currentCategorySpending.forEach((currentMonth) => {
-    // Match the current month's spending to the historical pipeline data
-    const categoryHistory = history.find(h => h._id.toString() === currentMonth.categoryId.toString());
+    const categoryHistory = history.find(
+      h => h._id.toString() === currentMonth.categoryId.toString()
+    );
 
     if (categoryHistory) {
       const average = categoryHistory.historicalAverage;
-      
-      // The Overspending Detection Rule (40% more than average)
+
+      // threshold = 40% higher than average
       const threshold = average * 1.4;
 
       if (currentMonth.totalSpent > threshold) {

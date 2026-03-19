@@ -19,19 +19,22 @@ interface AnalyticsState {
   error: string | null;
 }
 
+// Initial state for analytics store
 const initialState: AnalyticsState = {
   data: null,
   isLoading: true,
   error: null,
 };
 
+// Fetch full analytics payload (aggregated backend response)
 export const fetchAnalytics = createAsyncThunk("analytics/fetchData", async (_, thunkAPI) => {
   try {
     const res = await analyticsService.getAnalysis();
-    // Your backend sends { success: true, data: { totals, categoryBreakdown... } }
     return res.data; 
   } catch (error: any) {
-    return thunkAPI.rejectWithValue(error?.response?.data?.message || "Failed to fetch analytics");
+    return thunkAPI.rejectWithValue(
+      error?.response?.data?.message || "Failed to fetch analytics"
+    );
   }
 });
 
@@ -41,11 +44,18 @@ const analyticsSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchAnalytics.pending, (state) => { state.isLoading = true; })
+      // Start loading
+      .addCase(fetchAnalytics.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      // Store analytics data
       .addCase(fetchAnalytics.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.data = action.payload; // Store the beautiful aggregated package!
+        state.data = action.payload;
       })
+
+      // Store error
       .addCase(fetchAnalytics.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;

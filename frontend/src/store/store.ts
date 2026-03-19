@@ -4,7 +4,6 @@ import financeReducer from './slices/financeSlice'
 import transactionReducer from './slices/transactionSlice'
 import analyticsReducer from './slices/analyticsSlice' 
 
-
 export const store = configureStore({
     reducer: {
         auth: authReducer,
@@ -14,6 +13,6 @@ export const store = configureStore({
     }
 })
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
+// Global types for use in hooks and selectors
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
